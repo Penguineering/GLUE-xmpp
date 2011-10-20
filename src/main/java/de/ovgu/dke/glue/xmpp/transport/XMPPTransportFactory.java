@@ -8,9 +8,11 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 
+// FIXME: eher vom XMPPClient implementieren lassen?
 public class XMPPTransportFactory implements TransportFactory {
 	private final XMPPClient client;
 
+	// TODO move to clients
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
 	public XMPPTransportFactory(final XMPPClient client) {

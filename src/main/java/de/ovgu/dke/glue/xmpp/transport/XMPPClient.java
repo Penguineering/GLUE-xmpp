@@ -23,21 +23,21 @@ import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 public class XMPPClient implements PacketListener, ConnectionListener {
 	static Log logger = LogFactory.getLog(XMPPClient.class);
 
-	private final XMPPConfiguration m_xmppconfig;
+	private final XMPPConfiguration xmppconfig;
 
 	/**
 	 * Used to lock the <code>m_handler</code> as it may be accessed through
 	 * different threads.
 	 */
-	private final Object m_handler_lock = new Object();
+	//private final Object handler_lock = new Object();
 
-	private XMPPConnection m_connection = null;
+	private XMPPConnection connection = null;
 
 	/**
-	 * Used to lock the <code>m_connection</code> as it may be accessed through
+	 * Used to lock the <code>connection</code> as it may be accessed through
 	 * different threads.
 	 */
-	private final Object m_conn_lock = new Object();
+	private final Object conn_lock = new Object();
 
 	/**
 	 * This presence is used when the client is ready to receive commands.
@@ -70,7 +70,7 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	public XMPPClient(final XMPPConfiguration config) {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
-		m_xmppconfig = config;
+		xmppconfig = config;
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	 * @return the XMPP configuration used for this client instance.
 	 */
 	public XMPPConfiguration getXmppconfig() {
-		return m_xmppconfig;
+		return xmppconfig;
 	}
 
 	/**
@@ -95,22 +95,22 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	 *             when an errors during XMPP communication occurs.
 	 */
 	public void startup() throws XMPPException {
-		synchronized (m_conn_lock) {
+		synchronized (conn_lock) {
 			// TODO use XMPPException
-			if (m_connection != null)
+			if (connection != null)
 				throw new IllegalStateException("Connection already exists.");
 
 			final ConnectionConfiguration conn_config = new ConnectionConfiguration(
-					m_xmppconfig.getServer());
-			conn_config.setCompressionEnabled(m_xmppconfig.isCompression());
+					xmppconfig.getServer());
+			conn_config.setCompressionEnabled(xmppconfig.isCompression());
 
 			// adapt online priority to configuration
-			PRESENCE_ONLINE.setPriority(m_xmppconfig.getPriority());
+			PRESENCE_ONLINE.setPriority(xmppconfig.getPriority());
 
 			// do not send an initial presence
 			conn_config.setSendPresence(false);
 
-			String resource = m_xmppconfig.getResource();
+			String resource = xmppconfig.getResource();
 			// generate a resource name if none is given
 			if (resource == null || resource.length() == 0)
 				resource = "xmpp" + System.currentTimeMillis();
@@ -119,21 +119,21 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 			conn_config.setReconnectionAllowed(true);
 
 			// create a new connection
-			m_connection = new XMPPConnection(conn_config);
+			connection = new XMPPConnection(conn_config);
 
 			// establish the connection
-			m_connection.connect();
+			connection.connect();
 
 			// add this client as connection listener
-			m_connection.addConnectionListener(this);
-			m_connection.addPacketListener(this, null);
+			connection.addConnectionListener(this);
+			connection.addPacketListener(this, null);
 
 			// login
-			m_connection.login(m_xmppconfig.getUser(), m_xmppconfig.getPass(),
+			connection.login(xmppconfig.getUser(), xmppconfig.getPass(),
 					resource);
 
 			// go online
-			m_connection.sendPacket(PRESENCE_ONLINE);
+			connection.sendPacket(PRESENCE_ONLINE);
 		}
 
 		logger.info("XMPP connection established.");
@@ -153,17 +153,17 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	 * unties the handler.
 	 */
 	public void teardown() {
-		synchronized (m_conn_lock) {
-			if (m_connection != null) {
+		synchronized (conn_lock) {
+			if (connection != null) {
 				// go offline and disconnect
-				m_connection.removePacketListener(this);
-				m_connection.disconnect(PRESENCE_OFFLINE);
-				m_connection = null;
+				connection.removePacketListener(this);
+				connection.disconnect(PRESENCE_OFFLINE);
+				connection = null;
 
 				// remove the handler
-				synchronized (m_handler_lock) {
+				//synchronized (handler_lock) {
 					// m_handler = null;
-				}
+				//}
 
 				logger.info("XMPP connection has been closed.");
 			}
@@ -171,18 +171,18 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	}
 
 	public boolean isConnected() {
-		synchronized (m_conn_lock) {
-			return m_connection != null && m_connection.isAuthenticated();
+		synchronized (conn_lock) {
+			return connection != null && connection.isAuthenticated();
 		}
 	}
 
 	public void enqueuePacket(final Packet packet) throws InterruptedException {
-		synchronized (m_conn_lock) {
+		synchronized (conn_lock) {
 			if (!isConnected())
 				throw new IllegalStateException(
 						"Connection is not properly initialized!");
 
-			m_connection.sendPacket(packet);
+			connection.sendPacket(packet);
 		}
 	}
 

@@ -22,7 +22,7 @@ public class XMPPTransport implements Transport {
 	private final Collection<LifecycleListener> lifecycle_listeners;
 
 	private final Set<PacketThread> threads;
-	
+
 	private PacketHandler defaultPacketHandler;
 
 	public XMPPTransport(final URI peer, final XMPPClient client) {
@@ -103,8 +103,15 @@ public class XMPPTransport implements Transport {
 		this.defaultPacketHandler = handler;
 	}
 
-	void sendPacket(XMPPPacketThread thread, XMPPPacket packet) {
-		//TODO implement
+	void sendPacket(XMPPPacketThread thread, XMPPPacket packet)
+			throws TransportException {
+		synchronized (threads) {
+			if (!threads.contains(thread))
+				throw new TransportException("Packet thread " + thread.getId()
+						+ " is not registered with transport for " + peer);
+		}
+
+		// TODO implement
 	}
 
 	@Override
