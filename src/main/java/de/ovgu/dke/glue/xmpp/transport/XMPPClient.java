@@ -1,5 +1,7 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
+import java.net.URI;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -29,7 +31,7 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	 * Used to lock the <code>m_handler</code> as it may be accessed through
 	 * different threads.
 	 */
-	//private final Object handler_lock = new Object();
+	// private final Object handler_lock = new Object();
 
 	private XMPPConnection connection = null;
 
@@ -161,9 +163,9 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 				connection = null;
 
 				// remove the handler
-				//synchronized (handler_lock) {
-					// m_handler = null;
-				//}
+				// synchronized (handler_lock) {
+				// m_handler = null;
+				// }
 
 				logger.info("XMPP connection has been closed.");
 			}
@@ -204,5 +206,13 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 
 	@Override
 	public void reconnectionSuccessful() {
+	}
+
+	public URI getLocalURI(){
+		final String jid;
+		synchronized (conn_lock) {
+			jid = connection.getUser();
+		}
+		return jid == null ? null : URI.create("xmpp:" + jid);
 	}
 }

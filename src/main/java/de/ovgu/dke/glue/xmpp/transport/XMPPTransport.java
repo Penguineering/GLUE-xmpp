@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import org.jivesoftware.smack.packet.Message;
+
 import de.ovgu.dke.glue.api.reporting.ReportListener;
 import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
 import de.ovgu.dke.glue.api.transport.LifecycleListener;
@@ -108,10 +110,36 @@ public class XMPPTransport implements Transport {
 		synchronized (threads) {
 			if (!threads.contains(thread))
 				throw new TransportException("Packet thread " + thread.getId()
-						+ " is not registered with transport for " + peer);
-		}
+						+ " is not registered for " + peer
+						+ " on this transport!");
 
-		// TODO implement
+			// create an XMPP message
+			Message msg = createXMPPMessage(packet);
+
+			try {
+				client.enqueuePacket(msg);
+			} catch (InterruptedException e) {
+				throw new TransportException("Error sending XMPP packet: "
+						+ e.getMessage(), e);
+			}
+		}
+	}
+
+	protected Message createXMPPMessage(final XMPPPacket packet)
+			throws TransportException {
+		Message msg = new Message(uri2jid(packet.receiver));
+		if (packet.getPayload() != null)
+			msg.setBody(packet.getPayload().toString());
+
+		return msg;
+	}
+
+	private static String uri2jid(URI peer) throws TransportException {
+		if (!peer.toString().startsWith("xmpp:"))
+			throw new TransportException(
+					"Target peer does not use the xmpp protocol: " + peer);
+
+		return peer.toString().substring(5);
 	}
 
 	@Override

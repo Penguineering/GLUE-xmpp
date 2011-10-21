@@ -6,15 +6,28 @@ import de.ovgu.dke.glue.api.transport.TransportException;
 
 public class XMPPPacketThread implements PacketThread {
 	private final XMPPTransport transport;
+
+	// the pair (owner; id) makes the process ID used to distinguisch different
+	// message threads between a pair of peers
+	private final String owner;
 	private final int id;
 
 	public XMPPPacketThread(XMPPTransport transport, int id) {
+		this(transport, transport.getPeer().toString(), id);
+	}
+
+	public XMPPPacketThread(XMPPTransport transport, String owner, int id) {
 		this.transport = transport;
+		this.owner = owner;
 		this.id = id;
 	}
-	
+
 	public int getId() {
 		return id;
+	}
+
+	public String getOwner() {
+		return owner;
 	}
 
 	@Override
@@ -25,12 +38,21 @@ public class XMPPPacketThread implements PacketThread {
 	@Override
 	public void send(Packet packet) throws TransportException {
 		try {
-			 transport.sendPacket(this, (XMPPPacket) packet);
+			transport.sendPacket(this, (XMPPPacket) packet);
 		} catch (ClassCastException e) {
 			throw new TransportException(
 					"Error converting packet to XMPP packet, invalid implementation type!",
 					e);
 		}
+	}
+
+	public Packet createPacket(Object payload, Packet.Priority priority)
+			throws TransportException {
+		XMPPPacket pkt = new XMPPPacket(payload, priority);
+		pkt.sender = transport.getClient().getLocalURI();
+		pkt.receiver = transport.getPeer();
+
+		return pkt;
 	}
 
 	@Override

@@ -9,12 +9,13 @@ import org.jivesoftware.smack.XMPPException;
 
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketThread;
-import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportRegistry;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.transport.XMPPClient;
+import de.ovgu.dke.glue.xmpp.transport.XMPPPacketThread;
+import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory;
 
 public class TestClient {
@@ -33,18 +34,21 @@ public class TestClient {
 		TransportRegistry.getInstance().setDefaultTransportFactory("xmpp");
 
 		// get a transport
-		final Transport xmpp = TransportRegistry
+		final XMPPTransport xmpp = (XMPPTransport)TransportRegistry
 				.getInstance()
 				.getDefaultTransportFactory()
 				.createTransport(
-						new URI("xmpp:shaun@bison.cs.uni-magdeburg.de"));
+						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		final PacketThread thread = xmpp.createThread(null);
-		
-		final Packet packet = null;
+
+		// TODO woher das packet nehmen?
+		final Packet packet = ((XMPPPacketThread) thread).createPacket(
+				"Hallo Welt!", Packet.Priority.DEFAULT);
+
 		
 		thread.send(packet);
-		
+
 		System.out.println("Press any key...");
 		System.in.read();
 
