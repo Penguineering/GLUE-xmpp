@@ -1,6 +1,8 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -9,9 +11,13 @@ import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
+import de.ovgu.dke.glue.api.transport.Transport;
+import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 
 /**
@@ -22,10 +28,13 @@ import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
-public class XMPPClient implements PacketListener, ConnectionListener {
+public class XMPPClient implements PacketListener, ConnectionListener,
+		TransportFactory {
 	static Log logger = LogFactory.getLog(XMPPClient.class);
 
 	private final XMPPConfiguration xmppconfig;
+
+	private final ConcurrentMap<URI, XMPPTransport> transports;
 
 	/**
 	 * Used to lock the <code>m_handler</code> as it may be accessed through
@@ -73,6 +82,8 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
 		xmppconfig = config;
+
+		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 	}
 
 	/**
@@ -82,6 +93,22 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	 */
 	public XMPPConfiguration getXmppconfig() {
 		return xmppconfig;
+	}
+
+	@Override
+	public Transport createTransport(URI peer) throws TransportException {
+		try {
+			XMPPTransport transport = transports.get(peer);
+
+			if (transport == null) {
+				transport = new XMPPTransport(peer, this);
+				transports.put(peer, transport);
+			}
+
+			return transport;
+		} catch (Exception e) {
+			throw new TransportException(e);
+		}
 	}
 
 	/**
@@ -146,8 +173,39 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 		if (packet == null)
 			return;
 
-		// TODO evaluate the packet
-		// getHandler().handleXMPPPacket(packet);
+		// find relevant transport
+		Message msg = (Message) packet;
+		XMPPTransport transport = findTransport(msg.getFrom());
+
+		// TODO handle message in transport
+		System.out.println(transport.getPeer());
+	}
+
+	protected XMPPTransport findTransport(final String from) {
+		final URI peer = URI.create(from);
+		XMPPTransport transport = transports.get(peer);
+
+		// if not found, first look for transport without resource
+		// TODO move thread to new transport?
+		if (transport == null) {
+			int idx = from.lastIndexOf('/');
+			if (idx > 0) {
+				final URI shortFrom = URI.create("xmpp:"
+						+ from.substring(0, idx));
+				transport = transports.get(shortFrom);
+			}
+		}
+		// if still not found: create transport
+		if (transport == null) {
+			try {
+				transport = (XMPPTransport) createTransport(peer);
+			} catch (TransportException e) {
+				// TODO reporting benutzen
+				logger.error("Could not create transport: " + e.getMessage(), e);
+			}
+		}
+
+		return transport;
 	}
 
 	/**
@@ -208,7 +266,7 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 	public void reconnectionSuccessful() {
 	}
 
-	public URI getLocalURI(){
+	public URI getLocalURI() {
 		final String jid;
 		synchronized (conn_lock) {
 			jid = connection.getUser();

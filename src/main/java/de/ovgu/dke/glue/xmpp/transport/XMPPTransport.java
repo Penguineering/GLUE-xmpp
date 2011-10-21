@@ -16,6 +16,7 @@ import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 
+// TODO peer muss mit und ggf. ohne ressource matchen
 public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
@@ -134,7 +135,7 @@ public class XMPPTransport implements Transport {
 		return msg;
 	}
 
-	private static String uri2jid(URI peer) throws TransportException {
+	protected static String uri2jid(URI peer) throws TransportException {
 		if (!peer.toString().startsWith("xmpp:"))
 			throw new TransportException(
 					"Target peer does not use the xmpp protocol: " + peer);
