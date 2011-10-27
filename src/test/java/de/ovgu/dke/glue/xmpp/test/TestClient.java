@@ -14,7 +14,6 @@ import de.ovgu.dke.glue.api.transport.TransportRegistry;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.transport.XMPPClient;
-import de.ovgu.dke.glue.xmpp.transport.XMPPPacketThread;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory;
 
@@ -42,12 +41,7 @@ public class TestClient {
 
 		final PacketThread thread = xmpp.createThread(null);
 
-		// TODO woher das packet nehmen?
-		final Packet packet = ((XMPPPacketThread) thread).createPacket(
-				"Hallo Welt!", Packet.Priority.DEFAULT);
-
-		
-		thread.send(packet);
+		thread.send("Hallo Welt!", Packet.Priority.DEFAULT);
 
 		System.out.println("Press any key...");
 		System.in.read();

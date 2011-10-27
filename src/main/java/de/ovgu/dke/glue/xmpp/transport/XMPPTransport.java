@@ -17,6 +17,7 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 
 // TODO peer muss mit und ggf. ohne ressource matchen
+// packet thread proxy verwenden, um resource matching umzusetzen
 public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
@@ -32,7 +33,7 @@ public class XMPPTransport implements Transport {
 		this.peer = peer;
 		this.client = client;
 
-		this.report_listeners = new ReportListenerSupport();
+		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
 
 		this.threads = new HashSet<PacketThread>();

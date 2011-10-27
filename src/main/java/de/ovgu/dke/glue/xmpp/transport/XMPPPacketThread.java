@@ -36,9 +36,11 @@ public class XMPPPacketThread implements PacketThread {
 	}
 
 	@Override
-	public void send(Packet packet) throws TransportException {
+	public void send(Object payload, Packet.Priority priority)
+			throws TransportException {
 		try {
-			transport.sendPacket(this, (XMPPPacket) packet);
+			transport.sendPacket(this,
+					(XMPPPacket) createPacket(payload, priority));
 		} catch (ClassCastException e) {
 			throw new TransportException(
 					"Error converting packet to XMPP packet, invalid implementation type!",
