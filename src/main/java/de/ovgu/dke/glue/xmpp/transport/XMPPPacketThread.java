@@ -7,27 +7,19 @@ import de.ovgu.dke.glue.api.transport.TransportException;
 public class XMPPPacketThread implements PacketThread {
 	private final XMPPTransport transport;
 
-	// the pair (owner; id) makes the process ID used to distinguisch different
-	// message threads between a pair of peers
-	private final String owner;
-	private final int id;
+	private final String id;
 
-	public XMPPPacketThread(XMPPTransport transport, int id) {
-		this(transport, transport.getPeer().toString(), id);
-	}
-
-	public XMPPPacketThread(XMPPTransport transport, String owner, int id) {
+	public XMPPPacketThread(XMPPTransport transport, String id) {
 		this.transport = transport;
-		this.owner = owner;
 		this.id = id;
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public String getOwner() {
-		return owner;
+	public XMPPTransport getTransport() {
+		return transport;
 	}
 
 	@Override
@@ -39,8 +31,11 @@ public class XMPPPacketThread implements PacketThread {
 	public void send(Object payload, Packet.Priority priority)
 			throws TransportException {
 		try {
-			transport.sendPacket(this,
-					(XMPPPacket) createPacket(payload, priority));
+			final XMPPPacket pkt = new XMPPPacket(payload, priority);
+			pkt.sender = transport.getClient().getLocalURI();
+			pkt.receiver = transport.getPeer();
+
+			transport.sendPacket(this, pkt);
 		} catch (ClassCastException e) {
 			throw new TransportException(
 					"Error converting packet to XMPP packet, invalid implementation type!",
@@ -48,20 +43,11 @@ public class XMPPPacketThread implements PacketThread {
 		}
 	}
 
-	public Packet createPacket(Object payload, Packet.Priority priority)
-			throws TransportException {
-		XMPPPacket pkt = new XMPPPacket(payload, priority);
-		pkt.sender = transport.getClient().getLocalURI();
-		pkt.receiver = transport.getPeer();
-
-		return pkt;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result
 				+ ((transport == null) ? 0 : transport.hashCode());
 		return result;
@@ -76,7 +62,10 @@ public class XMPPPacketThread implements PacketThread {
 		if (getClass() != obj.getClass())
 			return false;
 		XMPPPacketThread other = (XMPPPacketThread) obj;
-		if (id != other.id)
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
 			return false;
 		if (transport == null) {
 			if (other.transport != null)

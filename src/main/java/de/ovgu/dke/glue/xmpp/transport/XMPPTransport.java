@@ -2,9 +2,9 @@ package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jivesoftware.smack.packet.Message;
 
@@ -18,6 +18,8 @@ import de.ovgu.dke.glue.api.transport.TransportException;
 
 // TODO peer muss mit und ggf. ohne ressource matchen
 // packet thread proxy verwenden, um resource matching umzusetzen
+
+// follows http://xmpp.org/extensions/xep-0201.html for message threading
 public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
@@ -25,9 +27,11 @@ public class XMPPTransport implements Transport {
 	private final ReportListenerSupport report_listeners;
 	private final Collection<LifecycleListener> lifecycle_listeners;
 
-	private final Set<PacketThread> threads;
+	private final Map<String, XMPPPacketThread> threads;
 
 	private PacketHandler defaultPacketHandler;
+
+	private Integer last_id = 0;
 
 	public XMPPTransport(final URI peer, final XMPPClient client) {
 		this.peer = peer;
@@ -36,7 +40,7 @@ public class XMPPTransport implements Transport {
 		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
 
-		this.threads = new HashSet<PacketThread>();
+		this.threads = new ConcurrentHashMap<String, XMPPPacketThread>();
 	}
 
 	public final URI getPeer() {
@@ -83,13 +87,16 @@ public class XMPPTransport implements Transport {
 	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
 		// TODO generate id
-		final int id = -1;
+		final String id;
+		synchronized (last_id) {
+			id = Integer.toString(++last_id);
+		}
 
 		XMPPPacketThread pt = new XMPPPacketThread(this, id);
 
 		// register packet thread
 		synchronized (threads) {
-			threads.add(pt);
+			threads.put(pt.getId(), pt);
 		}
 
 		return pt;
@@ -107,29 +114,32 @@ public class XMPPTransport implements Transport {
 		this.defaultPacketHandler = handler;
 	}
 
-	void sendPacket(XMPPPacketThread thread, XMPPPacket packet)
+	void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)
 			throws TransportException {
-		synchronized (threads) {
-			if (!threads.contains(thread))
-				throw new TransportException("Packet thread " + thread.getId()
-						+ " is not registered for " + peer
-						+ " on this transport!");
+		// check thread
+		final XMPPPacketThread lt = threads.get(thread.getId());
 
-			// create an XMPP message
-			Message msg = createXMPPMessage(packet);
+		if (lt == null || thread.getTransport() != this)
+			throw new TransportException("Packet thread " + thread.getId()
+					+ " is not registered on this transport!");
 
-			try {
-				client.enqueuePacket(msg);
-			} catch (InterruptedException e) {
-				throw new TransportException("Error sending XMPP packet: "
-						+ e.getMessage(), e);
-			}
+		// create an XMPP message
+		Message msg = createXMPPMessage(thread, packet);
+
+		try {
+			client.enqueuePacket(msg);
+		} catch (InterruptedException e) {
+			throw new TransportException("Error sending XMPP packet: "
+					+ e.getMessage(), e);
 		}
 	}
 
-	protected Message createXMPPMessage(final XMPPPacket packet)
-			throws TransportException {
+	protected Message createXMPPMessage(final XMPPPacketThread thread,
+			final XMPPPacket packet) throws TransportException {
 		Message msg = new Message(uri2jid(packet.receiver));
+		msg.setType(Message.Type.chat);
+		msg.setThread(thread.getId());
+
 		if (packet.getPayload() != null)
 			msg.setBody(packet.getPayload().toString());
 
