@@ -83,16 +83,8 @@ public class XMPPTransport implements Transport {
 	@Override
 	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
-		// generate id
-		final String id = threads.generateThreadID();
-		
-		// create packet thread
-		XMPPPacketThread pt = new XMPPPacketThread(this, id);
-
-		// register packet thread
-		threads.registerThread(pt);
-
-		return pt;
+		return threads.createThread(this,
+				handler == null ? defaultPacketHandler : handler);
 	}
 
 	void disposeThread(PacketThread thread) {
@@ -103,6 +95,10 @@ public class XMPPTransport implements Transport {
 	@Override
 	public void setDefaultPackerHandler(PacketHandler handler) {
 		this.defaultPacketHandler = handler;
+	}
+
+	public PacketHandler getDefaultPacketHandler() {
+		return this.defaultPacketHandler;
 	}
 
 	void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)

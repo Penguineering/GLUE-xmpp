@@ -3,13 +3,17 @@ package de.ovgu.dke.glue.xmpp.transport;
 import java.net.URI;
 
 import de.ovgu.dke.glue.api.transport.Packet;
+import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 
+//TODO synchronization
 public class XMPPPacketThread implements PacketThread {
 	private final XMPPTransport transport;
 
 	private final String id;
+	
+	private PacketHandler handler;
 
 	/**
 	 * this reflects the last known peer's JID, including a resource. This id
@@ -18,10 +22,12 @@ public class XMPPPacketThread implements PacketThread {
 	 */
 	private URI effective_jid;
 
-	public XMPPPacketThread(XMPPTransport transport, String id)
+	public XMPPPacketThread(XMPPTransport transport, String id, PacketHandler handler)
 			throws TransportException {
 		this.transport = transport;
 		this.id = id;
+		
+		this.handler = handler;
 
 		this.effective_jid = transport.getPeer();
 	}
@@ -32,6 +38,14 @@ public class XMPPPacketThread implements PacketThread {
 
 	public XMPPTransport getTransport() {
 		return transport;
+	}
+	
+	public PacketHandler getHandler() {
+		return handler;
+	}
+
+	public void setHandler(PacketHandler handler) {
+		this.handler = handler;
 	}
 
 	public URI getEffectiveJID() {

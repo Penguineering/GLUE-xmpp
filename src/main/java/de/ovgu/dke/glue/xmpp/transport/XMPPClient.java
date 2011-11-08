@@ -184,22 +184,81 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 		final Message msg = (Message) packet;
 
-		// find the packet thread
-		// TODO thread extractor
-		final String id = msg.getThread();
-		XMPPPacketThread pt = (id == null) ? null : threads.retrieveThread(id);
+		String payload = msg.getBody();
 
-		// TODO handle message in thread
-		if (pt == null)
-			System.out.println("Packet thread for " + id
-					+ " could not be found.");
-		else {
-			// adapt the threads effective JID
+		// find the packet thread
+		// TODO move to thread ID extractor
+		String id = msg.getThread();
+		if (id == null) {
+			// take the first line from payload
+			int br_idx = payload.indexOf('\n');
+			if (br_idx > 0) {
+				id = payload.substring(0, br_idx);
+				payload = payload.substring(br_idx + 1);
+			} else {
+				id = payload;
+				payload = null;
+			}
+		}
+
+		if (id == null) {
+			System.err.println("Packet thread ID for " + id
+					+ " could not be retrieved!");
+			return;
+		}
+
+		// TODO check ID consistency
+
+		XMPPPacketThread pt = threads.retrieveThread(id);
+
+		if (pt == null) {
+			XMPPTransport transport = findTransport(msg.getFrom());
+			try {
+				System.out.println("Creating new packet thread with ID " + id);
+				pt = (XMPPPacketThread) threads.addThread(transport, id,
+						transport.getDefaultPacketHandler());
+			} catch (TransportException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		if (pt != null) {
 			pt.setEffectiveJID(URI.create("xmpp:" + msg.getFrom()));
+
+			// TODO handle message in thread
+			// adapt the threads effective JID
 			System.out.println(pt.getTransport().getPeer());
+
+			System.out.println("Payload:\n" + payload);
+
+			// TODO create XMPP packet from smack packet
+			XMPPPacket pkt = new XMPPPacket(payload,
+					de.ovgu.dke.glue.api.transport.Packet.Priority.DEFERRABLE);
+			pkt.receiver = URI.create("xmpp:" + msg.getTo());
+			pkt.sender = URI.create("xmpp:" + msg.getFrom());
+
+			// TODO call via thread
+			if (pt.getHandler() != null)
+				try {
+					pt.getHandler().handle(pt, pkt);
+				} catch (TransportException e) {
+					e.printStackTrace();
+				}
+			else
+				System.err.println("No packet handler defined for thread "
+						+ pt.getId());
 		}
 	}
 
+	/**
+	 * Tries to find a transport that matches the given JID, if necessary by
+	 * removing the Jabber resource. If none could be found, create a new
+	 * transport.
+	 * 
+	 * @param from
+	 * @return
+	 */
 	protected XMPPTransport findTransport(final String from) {
 		final URI peer = URI.create(from);
 		XMPPTransport transport = transports.get(peer);

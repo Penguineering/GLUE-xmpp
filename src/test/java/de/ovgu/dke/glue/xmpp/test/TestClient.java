@@ -8,6 +8,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.jivesoftware.smack.XMPPException;
 
 import de.ovgu.dke.glue.api.transport.Packet;
+import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportRegistry;
@@ -33,11 +34,12 @@ public class TestClient {
 		TransportRegistry.getInstance().setDefaultTransportFactory("xmpp");
 
 		// get a transport
-		final XMPPTransport xmpp = (XMPPTransport)TransportRegistry
+		final XMPPTransport xmpp = (XMPPTransport) TransportRegistry
 				.getInstance()
 				.getDefaultTransportFactory()
 				.createTransport(
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
+		xmpp.setDefaultPackerHandler(new EchoHandler());
 
 		final PacketThread thread = xmpp.createThread(null);
 
@@ -49,5 +51,13 @@ public class TestClient {
 		thread.dispose();
 		client.teardown();
 
+	}
+}
+
+class EchoHandler implements PacketHandler {
+	@Override
+	public void handle(PacketThread packetThread, Packet packet)
+			throws TransportException {
+		packetThread.send(packet.getPayload(), packet.getPriority());
 	}
 }
