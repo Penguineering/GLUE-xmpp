@@ -15,6 +15,7 @@ import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.xmpp.transport.thread.ThreadIDGenerator;
 
 // TODO peer muss mit und ggf. ohne ressource matchen
 // packet thread proxy verwenden, um resource matching umzusetzen
@@ -31,9 +32,12 @@ public class XMPPTransport implements Transport {
 
 	private PacketHandler defaultPacketHandler;
 
-	private Integer last_id = 0;
+	/**
+	 * The thread ID generator instance is shared among all transports of a client
+	 */
+	private final ThreadIDGenerator id_generator;
 
-	public XMPPTransport(final URI peer, final XMPPClient client) {
+	public XMPPTransport(final URI peer, final XMPPClient client, ThreadIDGenerator generator) {
 		this.peer = peer;
 		this.client = client;
 
@@ -41,6 +45,8 @@ public class XMPPTransport implements Transport {
 		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
 
 		this.threads = new ConcurrentHashMap<String, XMPPPacketThread>();
+
+		this.id_generator = generator; 
 	}
 
 	public final URI getPeer() {
@@ -87,26 +93,18 @@ public class XMPPTransport implements Transport {
 	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
 		// TODO generate id
-		final String id;
-		synchronized (last_id) {
-			id = Integer.toString(++last_id);
-		}
-
+		final String id = id_generator.generate();
 		XMPPPacketThread pt = new XMPPPacketThread(this, id);
 
 		// register packet thread
-		synchronized (threads) {
-			threads.put(pt.getId(), pt);
-		}
+		threads.put(pt.getId(), pt);
 
 		return pt;
 	}
 
 	void disposeThread(PacketThread thread) {
 		if (thread != null)
-			synchronized (threads) {
-				threads.remove(thread);
-			}
+			threads.remove(thread);
 	}
 
 	@Override

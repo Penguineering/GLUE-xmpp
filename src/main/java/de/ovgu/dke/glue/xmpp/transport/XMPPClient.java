@@ -19,6 +19,8 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
+import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
+import de.ovgu.dke.glue.xmpp.transport.thread.ThreadIDGenerator;
 
 /**
  * XMPP Client to receive and evaluate XMPP requests.
@@ -49,6 +51,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 * different threads.
 	 */
 	private final Object conn_lock = new Object();
+
+	private ThreadIDGenerator id_generator = null;
 
 	/**
 	 * This presence is used when the client is ready to receive commands.
@@ -101,7 +105,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			XMPPTransport transport = transports.get(peer);
 
 			if (transport == null) {
-				transport = new XMPPTransport(peer, this);
+				transport = new XMPPTransport(peer, this, id_generator);
 				transports.put(peer, transport);
 			}
 
@@ -161,6 +165,9 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			connection.login(xmppconfig.getUser(), xmppconfig.getPass(),
 					resource);
 
+			// create the thread id generator for this connection
+			id_generator = new CountingThreadIDGenerator(this.getLocalURI());
+
 			// go online
 			connection.sendPacket(PRESENCE_ONLINE);
 		}
@@ -215,6 +222,9 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	public void teardown() {
 		synchronized (conn_lock) {
 			if (connection != null) {
+				// remove the id generator
+				id_generator = null;
+				
 				// go offline and disconnect
 				connection.removePacketListener(this);
 				connection.disconnect(PRESENCE_OFFLINE);
