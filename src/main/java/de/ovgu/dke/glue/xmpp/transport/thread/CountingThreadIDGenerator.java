@@ -13,7 +13,7 @@ public class CountingThreadIDGenerator implements ThreadIDGenerator {
 	}
 
 	@Override
-	public String generate() throws TransportException {
+	public String generateThreadID() throws TransportException {
 		synchronized (last_id) {
 			last_id++;
 			final String id = local_peer.toASCIIString() + ":"

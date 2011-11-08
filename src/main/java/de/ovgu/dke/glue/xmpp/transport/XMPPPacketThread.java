@@ -1,5 +1,7 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
+import java.net.URI;
+
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
@@ -9,9 +11,19 @@ public class XMPPPacketThread implements PacketThread {
 
 	private final String id;
 
-	public XMPPPacketThread(XMPPTransport transport, String id) {
+	/**
+	 * this reflects the last known peer's JID, including a resource. This id
+	 * changes depending in the last received message and is the target for
+	 * subsequent replies.
+	 */
+	private URI effective_jid;
+
+	public XMPPPacketThread(XMPPTransport transport, String id)
+			throws TransportException {
 		this.transport = transport;
 		this.id = id;
+
+		this.effective_jid = transport.getPeer();
 	}
 
 	public String getId() {
@@ -20,6 +32,14 @@ public class XMPPPacketThread implements PacketThread {
 
 	public XMPPTransport getTransport() {
 		return transport;
+	}
+
+	public URI getEffectiveJID() {
+		return effective_jid;
+	}
+
+	public void setEffectiveJID(URI jid) {
+		this.effective_jid = jid;
 	}
 
 	@Override
@@ -33,7 +53,7 @@ public class XMPPPacketThread implements PacketThread {
 		try {
 			final XMPPPacket pkt = new XMPPPacket(payload, priority);
 			pkt.sender = transport.getClient().getLocalURI();
-			pkt.receiver = transport.getPeer();
+			pkt.receiver = effective_jid;
 
 			transport.sendPacket(this, pkt);
 		} catch (ClassCastException e) {

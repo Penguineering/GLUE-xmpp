@@ -20,7 +20,7 @@ import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
-import de.ovgu.dke.glue.xmpp.transport.thread.ThreadIDGenerator;
+import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
 /**
  * XMPP Client to receive and evaluate XMPP requests.
@@ -38,6 +38,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
+	private PacketThreadManager threads;
+
 	/**
 	 * Used to lock the <code>m_handler</code> as it may be accessed through
 	 * different threads.
@@ -51,8 +53,6 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 * different threads.
 	 */
 	private final Object conn_lock = new Object();
-
-	private ThreadIDGenerator id_generator = null;
 
 	/**
 	 * This presence is used when the client is ready to receive commands.
@@ -88,6 +88,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 		xmppconfig = config;
 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
+		this.threads = null;
 	}
 
 	/**
@@ -105,7 +106,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			XMPPTransport transport = transports.get(peer);
 
 			if (transport == null) {
-				transport = new XMPPTransport(peer, this, id_generator);
+				transport = new XMPPTransport(peer, this, threads);
 				transports.put(peer, transport);
 			}
 
@@ -165,8 +166,9 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			connection.login(xmppconfig.getUser(), xmppconfig.getPass(),
 					resource);
 
-			// create the thread id generator for this connection
-			id_generator = new CountingThreadIDGenerator(this.getLocalURI());
+			// create the thread manager for this connection
+			this.threads = new PacketThreadManager(
+					new CountingThreadIDGenerator(this.getLocalURI()));
 
 			// go online
 			connection.sendPacket(PRESENCE_ONLINE);
@@ -177,15 +179,25 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 	@Override
 	public void processPacket(final Packet packet) {
-		if (packet == null)
+		if ((packet == null) || !(packet instanceof Message))
 			return;
 
-		// find relevant transport
-		Message msg = (Message) packet;
-		XMPPTransport transport = findTransport(msg.getFrom());
+		final Message msg = (Message) packet;
 
-		// TODO handle message in transport
-		System.out.println(transport.getPeer());
+		// find the packet thread
+		// TODO thread extractor
+		final String id = msg.getThread();
+		XMPPPacketThread pt = (id == null) ? null : threads.retrieveThread(id);
+
+		// TODO handle message in thread
+		if (pt == null)
+			System.out.println("Packet thread for " + id
+					+ " could not be found.");
+		else {
+			// adapt the threads effective JID
+			pt.setEffectiveJID(URI.create("xmpp:" + msg.getFrom()));
+			System.out.println(pt.getTransport().getPeer());
+		}
 	}
 
 	protected XMPPTransport findTransport(final String from) {
@@ -223,8 +235,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 		synchronized (conn_lock) {
 			if (connection != null) {
 				// remove the id generator
-				id_generator = null;
-				
+				this.threads = null;
+
 				// go offline and disconnect
 				connection.removePacketListener(this);
 				connection.disconnect(PRESENCE_OFFLINE);

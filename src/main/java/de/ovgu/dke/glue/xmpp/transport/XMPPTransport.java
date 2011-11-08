@@ -3,8 +3,6 @@ package de.ovgu.dke.glue.xmpp.transport;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jivesoftware.smack.packet.Message;
 
@@ -15,7 +13,7 @@ import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.xmpp.transport.thread.ThreadIDGenerator;
+import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
 // TODO peer muss mit und ggf. ohne ressource matchen
 // packet thread proxy verwenden, um resource matching umzusetzen
@@ -28,25 +26,18 @@ public class XMPPTransport implements Transport {
 	private final ReportListenerSupport report_listeners;
 	private final Collection<LifecycleListener> lifecycle_listeners;
 
-	private final Map<String, XMPPPacketThread> threads;
-
 	private PacketHandler defaultPacketHandler;
 
-	/**
-	 * The thread ID generator instance is shared among all transports of a client
-	 */
-	private final ThreadIDGenerator id_generator;
+	private final PacketThreadManager threads;
 
-	public XMPPTransport(final URI peer, final XMPPClient client, ThreadIDGenerator generator) {
+	public XMPPTransport(final URI peer, final XMPPClient client,
+			PacketThreadManager threads) {
 		this.peer = peer;
 		this.client = client;
 
 		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
-
-		this.threads = new ConcurrentHashMap<String, XMPPPacketThread>();
-
-		this.id_generator = generator; 
+		this.threads = threads;
 	}
 
 	public final URI getPeer() {
@@ -92,19 +83,21 @@ public class XMPPTransport implements Transport {
 	@Override
 	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
-		// TODO generate id
-		final String id = id_generator.generate();
+		// generate id
+		final String id = threads.generateThreadID();
+		
+		// create packet thread
 		XMPPPacketThread pt = new XMPPPacketThread(this, id);
 
 		// register packet thread
-		threads.put(pt.getId(), pt);
+		threads.registerThread(pt);
 
 		return pt;
 	}
 
 	void disposeThread(PacketThread thread) {
 		if (thread != null)
-			threads.remove(thread);
+			threads.removeThread(((XMPPPacketThread) thread).getId());
 	}
 
 	@Override
@@ -115,7 +108,7 @@ public class XMPPTransport implements Transport {
 	void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)
 			throws TransportException {
 		// check thread
-		final XMPPPacketThread lt = threads.get(thread.getId());
+		final XMPPPacketThread lt = threads.retrieveThread(thread.getId());
 
 		if (lt == null || thread.getTransport() != this)
 			throw new TransportException("Packet thread " + thread.getId()
