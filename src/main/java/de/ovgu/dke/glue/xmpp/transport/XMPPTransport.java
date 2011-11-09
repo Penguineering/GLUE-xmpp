@@ -8,16 +8,19 @@ import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.reporting.ReportListener;
 import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
+import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.transport.LifecycleListener;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
+import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
 // follows http://xmpp.org/extensions/xep-0201.html for message threading
 // TODO variables threading-verfahren umsetzen
-public class XMPPTransport implements Transport {	
+public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
 
@@ -25,6 +28,8 @@ public class XMPPTransport implements Transport {
 	private final Collection<LifecycleListener> lifecycle_listeners;
 
 	private PacketHandler defaultPacketHandler;
+
+	private SmackMessageConverter converter;
 
 	private final PacketThreadManager threads;
 
@@ -36,6 +41,8 @@ public class XMPPTransport implements Transport {
 		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
 		this.threads = threads;
+
+		this.converter = null;
 	}
 
 	public final URI getPeer() {
@@ -109,12 +116,21 @@ public class XMPPTransport implements Transport {
 					+ " is not registered on this transport!");
 
 		// create an XMPP message
-		Message msg = createXMPPMessage(packet);
+		SmackMessageConverter conv = this.converter;
+		if (conv == null) {
+			// be on the safe side and encode thread IDs in the messsage body
+			conv = new TextThreadSmackPacketConverter();
+			// a converter will be stored by the client upon receipt of a message
+		}
 
 		try {
+			final Message msg = conv.toSmack(packet);
 			client.enqueuePacket(msg);
 		} catch (InterruptedException e) {
 			throw new TransportException("Error sending XMPP packet: "
+					+ e.getMessage(), e);
+		} catch (SerializationException e) {
+			throw new TransportException("Error converting XMPP packet: "
 					+ e.getMessage(), e);
 		}
 	}
@@ -123,7 +139,7 @@ public class XMPPTransport implements Transport {
 			throws TransportException {
 		Message msg = new Message(uri2jid(packet.receiver));
 		msg.setType(Message.Type.chat);
-		//TODO use generic thread injection
+		// TODO use generic thread injection
 		// Evtl prüfen, was der Transport kann
 		msg.setThread(packet.thread_id);
 
@@ -139,6 +155,14 @@ public class XMPPTransport implements Transport {
 					"Target peer does not use the xmpp protocol: " + peer);
 
 		return peer.toString().substring(5);
+	}
+
+	public SmackMessageConverter getConverter() {
+		return converter;
+	}
+
+	public void setConverter(SmackMessageConverter converter) {
+		this.converter = converter;
 	}
 
 	@Override

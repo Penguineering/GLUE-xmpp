@@ -15,11 +15,15 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
+import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
+import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
+import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
+import de.ovgu.dke.glue.xmpp.serialization.XMPPThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
@@ -190,74 +194,74 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	public void processPacket(final Packet packet) {
 		if ((packet == null) || !(packet instanceof Message))
 			return;
-
 		final Message msg = (Message) packet;
 
-		String payload = msg.getBody();
+		try {
+			// get the transport for this sender
+			final XMPPTransport transport = findTransport(msg.getFrom());
 
-		// find the packet thread
-		// TODO move to thread ID extractor
-		String id = msg.getThread();
-		if (id == null) {
-			// take the first line from payload
-			int br_idx = payload.indexOf('\n');
-			if (br_idx > 0) {
-				id = payload.substring(0, br_idx);
-				payload = payload.substring(br_idx + 1);
-			} else {
-				id = payload;
-				payload = null;
-			}
-		}
+			// create XMPP packet from smack packet
+			XMPPPacket pkt = null;
 
-		if (id == null) {
-			System.err.println("Packet thread ID for " + id
-					+ " could not be retrieved!");
-			return;
-		}
+			// get the converter
+			SmackMessageConverter conv = transport.getConverter();
+			// if there is no converter, we try different methods:
+			// first the XMPP threading (XEP-0201),
+			// then thread info in body
+			if (conv == null) {
+				// try the XMPP threading converter first
+				conv = new XMPPThreadSmackPacketConverter();
+				pkt = conv.fromSmack(msg);
 
-		// TODO check ID consistency
-
-		XMPPPacketThread pt = threads.retrieveThread(id);
-
-		if (pt == null) {
-			XMPPTransport transport = findTransport(msg.getFrom());
-			try {
-				System.out.println("Creating new packet thread with ID " + id);
-				pt = (XMPPPacketThread) threads.addThread(transport, id,
-						transport.getDefaultPacketHandler());
-			} catch (TransportException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		if (pt != null) {
-			pt.setEffectiveJID(URI.create("xmpp:" + msg.getFrom()));
-
-			// TODO handle message in thread
-			// adapt the threads effective JID
-			System.out.println(pt.getTransport().getPeer());
-
-			System.out.println("Payload:\n" + payload);
-
-			// TODO create XMPP packet from smack packet
-			XMPPPacket pkt = new XMPPPacket(payload,
-					de.ovgu.dke.glue.api.transport.Packet.Priority.DEFERRABLE);
-			pkt.receiver = URI.create("xmpp:" + msg.getTo());
-			pkt.sender = URI.create("xmpp:" + msg.getFrom());
-			pkt.thread_id = id;
-
-			// TODO call via thread
-			if (pt.getHandler() != null)
-				try {
-					pt.getHandler().handle(pt, pkt);
-				} catch (TransportException e) {
-					e.printStackTrace();
+				// use the text based threading converter if there was no thread
+				// attached
+				if (pkt.thread_id == null || pkt.thread_id.isEmpty()) {
+					conv = new TextThreadSmackPacketConverter();
+					pkt = conv.fromSmack(msg);
 				}
-			else
-				System.err.println("No packet handler defined for thread "
-						+ pt.getId());
+			} else
+				pkt = conv.fromSmack(msg);
+
+			if (pkt.thread_id == null) {
+				System.err.println("Packet thread ID for " + pkt.thread_id
+						+ " could not be retrieved!");
+				return;
+			} else if (transport.getConverter() == null) {
+				// if we are fine here, store the converter
+				transport.setConverter(conv);
+			}
+
+			// TODO check ID consistency
+
+			XMPPPacketThread pt = threads.retrieveThread(pkt.thread_id);
+
+			if (pt == null) {
+				System.out.println("Creating new packet thread with ID "
+						+ pkt.thread_id);
+				pt = (XMPPPacketThread) threads.addThread(transport,
+						pkt.thread_id, transport.getDefaultPacketHandler());
+			}
+
+			if (pt != null) {
+				pt.setEffectiveJID(URI.create("xmpp:" + pkt.sender));
+
+				// TODO handle message in thread
+				// adapt the threads effective JID
+				System.out.println(pt.getTransport().getPeer());
+
+				System.out.println("Payload:\n" + pkt.getPayload());
+
+				// TODO call via thread
+				if (pt.getHandler() != null)
+					pt.getHandler().handle(pt, pkt);
+				else
+					System.err.println("No packet handler defined for thread "
+							+ pt.getId());
+			}
+		} catch (TransportException e) {
+			e.printStackTrace();
+		} catch (SerializationException e) {
+			e.printStackTrace();
 		}
 	}
 

@@ -12,21 +12,21 @@ public class XMPPPacketThread implements PacketThread {
 	private final XMPPTransport transport;
 
 	private final String id;
-	
+
 	private PacketHandler handler;
 
 	/**
-	 * this reflects the last known peer's JID, including a resource. This id
-	 * changes depending in the last received message and is the target for
+	 * This reflects the last known peer's JID, including a resource. The id
+	 * changes depending on the last received message and is the target for
 	 * subsequent replies.
 	 */
 	private URI effective_jid;
 
-	public XMPPPacketThread(XMPPTransport transport, String id, PacketHandler handler)
-			throws TransportException {
+	public XMPPPacketThread(XMPPTransport transport, String id,
+			PacketHandler handler) throws TransportException {
 		this.transport = transport;
 		this.id = id;
-		
+
 		this.handler = handler;
 
 		this.effective_jid = transport.getPeer();
@@ -39,7 +39,7 @@ public class XMPPPacketThread implements PacketThread {
 	public XMPPTransport getTransport() {
 		return transport;
 	}
-	
+
 	public PacketHandler getHandler() {
 		return handler;
 	}
