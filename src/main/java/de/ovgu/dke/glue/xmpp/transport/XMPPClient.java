@@ -15,6 +15,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
+import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
@@ -37,6 +38,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	private final XMPPConfiguration xmppconfig;
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
+
+	private final PacketHandlerFactory handler_factory;
 
 	private PacketThreadManager threads;
 
@@ -82,10 +85,13 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 * @throws IllegalStateException
 	 *             if the plugin environment could not be found
 	 */
-	public XMPPClient(final XMPPConfiguration config) {
+	public XMPPClient(final XMPPConfiguration config,
+			final PacketHandlerFactory handlerFactory) {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
-		xmppconfig = config;
+		this.xmppconfig = config;
+
+		this.handler_factory = handlerFactory;
 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 		this.threads = null;
@@ -107,6 +113,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 			if (transport == null) {
 				transport = new XMPPTransport(peer, this, threads);
+				transport.setDefaultPackerHandler(handler_factory
+						.createPacketHandler());
 				transports.put(peer, transport);
 			}
 
@@ -178,6 +186,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	}
 
 	@Override
+	// TODO wohin mit den Fehlermeldungen?
 	public void processPacket(final Packet packet) {
 		if ((packet == null) || !(packet instanceof Message))
 			return;
@@ -237,6 +246,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 					de.ovgu.dke.glue.api.transport.Packet.Priority.DEFERRABLE);
 			pkt.receiver = URI.create("xmpp:" + msg.getTo());
 			pkt.sender = URI.create("xmpp:" + msg.getFrom());
+			pkt.thread_id = id;
 
 			// TODO call via thread
 			if (pt.getHandler() != null)

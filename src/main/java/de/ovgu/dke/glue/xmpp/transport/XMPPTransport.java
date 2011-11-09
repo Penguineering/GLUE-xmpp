@@ -15,11 +15,9 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
-// TODO peer muss mit und ggf. ohne ressource matchen
-// packet thread proxy verwenden, um resource matching umzusetzen
-
 // follows http://xmpp.org/extensions/xep-0201.html for message threading
-public class XMPPTransport implements Transport {
+// TODO variables threading-verfahren umsetzen
+public class XMPPTransport implements Transport {	
 	private final URI peer;
 	private final XMPPClient client;
 
@@ -111,7 +109,7 @@ public class XMPPTransport implements Transport {
 					+ " is not registered on this transport!");
 
 		// create an XMPP message
-		Message msg = createXMPPMessage(thread, packet);
+		Message msg = createXMPPMessage(packet);
 
 		try {
 			client.enqueuePacket(msg);
@@ -121,11 +119,13 @@ public class XMPPTransport implements Transport {
 		}
 	}
 
-	protected Message createXMPPMessage(final XMPPPacketThread thread,
-			final XMPPPacket packet) throws TransportException {
+	protected Message createXMPPMessage(final XMPPPacket packet)
+			throws TransportException {
 		Message msg = new Message(uri2jid(packet.receiver));
 		msg.setType(Message.Type.chat);
-		msg.setThread(thread.getId());
+		//TODO use generic thread injection
+		// Evtl prüfen, was der Transport kann
+		msg.setThread(packet.thread_id);
 
 		if (packet.getPayload() != null)
 			msg.setBody(packet.getPayload().toString());

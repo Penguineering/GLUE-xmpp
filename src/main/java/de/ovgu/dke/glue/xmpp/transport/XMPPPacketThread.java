@@ -68,6 +68,7 @@ public class XMPPPacketThread implements PacketThread {
 			final XMPPPacket pkt = new XMPPPacket(payload, priority);
 			pkt.sender = transport.getClient().getLocalURI();
 			pkt.receiver = effective_jid;
+			pkt.thread_id = this.getId();
 
 			transport.sendPacket(this, pkt);
 		} catch (ClassCastException e) {
