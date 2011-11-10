@@ -3,7 +3,6 @@ package de.ovgu.dke.glue.xmpp.transport;
 import java.net.URI;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.jivesoftware.smack.XMPPException;
 
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
@@ -30,7 +29,7 @@ public class XMPPTransportFactory implements TransportFactory {
 		} catch (ConfigurationException e) {
 			throw new TransportException("Error loading the configuration: "
 					+ e.getMessage(), e);
-		} catch (XMPPException e) {
+		} catch (TransportException e) {
 			throw new TransportException("Error during client initialization: "
 					+ e.getMessage(), e);
 		}
