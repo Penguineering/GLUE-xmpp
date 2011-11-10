@@ -220,7 +220,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 			if (pt != null) {
 				// adapt the threads effective JID
-				pt.setEffectiveJID(URI.create("xmpp:" + pkt.sender));
+				pt.setEffectiveJID(pkt.sender);
 
 				// TODO handle message in thread
 				logger.debug(pt.getTransport().getPeer());
