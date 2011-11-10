@@ -16,10 +16,11 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
+import de.ovgu.dke.glue.xmpp.serialization.XMPPThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
 // follows http://xmpp.org/extensions/xep-0201.html for message threading
-// TODO variables threading-verfahren umsetzen
+// TODO variables threading-verfahren korrekt umsetzen
 public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
@@ -118,9 +119,10 @@ public class XMPPTransport implements Transport {
 		// create an XMPP message
 		SmackMessageConverter conv = this.converter;
 		if (conv == null) {
-			// be on the safe side and encode thread IDs in the messsage body
+			// be on the safe side and encode thread IDs in the message body
 			conv = new TextThreadSmackPacketConverter();
-			// a converter will be stored by the client upon receipt of a message
+			// a converter will be stored by the client upon receipt of a
+			// message
 		}
 
 		try {
@@ -135,33 +137,53 @@ public class XMPPTransport implements Transport {
 		}
 	}
 
-	protected Message createXMPPMessage(final XMPPPacket packet)
+	public XMPPPacket processSmackMessage(Message msg)
 			throws TransportException {
-		Message msg = new Message(uri2jid(packet.receiver));
-		msg.setType(Message.Type.chat);
-		// TODO use generic thread injection
-		// Evtl prüfen, was der Transport kann
-		msg.setThread(packet.thread_id);
+		try {
+			// create XMPP packet from smack packet
+			XMPPPacket pkt = null;
 
-		if (packet.getPayload() != null)
-			msg.setBody(packet.getPayload().toString());
+			// get the converter
+			SmackMessageConverter conv = this.getConverter();
+			// if there is no converter, we try different methods:
+			// first the XMPP threading (XEP-0201),
+			// then thread info in body
+			if (conv == null) {
+				// try the XMPP threading converter first
+				conv = new XMPPThreadSmackPacketConverter();
+				pkt = conv.fromSmack(msg);
 
-		return msg;
+				// use the text based threading converter if there was no thread
+				// attached
+				if (pkt.thread_id == null || pkt.thread_id.isEmpty()) {
+					conv = new TextThreadSmackPacketConverter();
+					pkt = conv.fromSmack(msg);
+				}
+			} else
+				pkt = conv.fromSmack(msg);
+
+			if (pkt.thread_id == null) {
+				throw new TransportException("Packet thread ID for "
+						+ pkt.thread_id + " could not be retrieved!");
+			} else if (this.getConverter() == null) {
+				// if we are fine here, store the converter
+				this.setConverter(conv);
+			}
+
+			// return the packet
+			return pkt;
+		} catch (SerializationException e) {
+			throw new TransportException("Error converting Smack message: "
+					+ e.getMessage(), e);
+		}
+
 	}
 
-	protected static String uri2jid(URI peer) throws TransportException {
-		if (!peer.toString().startsWith("xmpp:"))
-			throw new TransportException(
-					"Target peer does not use the xmpp protocol: " + peer);
-
-		return peer.toString().substring(5);
-	}
-
-	public SmackMessageConverter getConverter() {
+	protected SmackMessageConverter getConverter() {
 		return converter;
 	}
 
-	public void setConverter(SmackMessageConverter converter) {
+	protected void setConverter(SmackMessageConverter converter) {
 		this.converter = converter;
 	}
 

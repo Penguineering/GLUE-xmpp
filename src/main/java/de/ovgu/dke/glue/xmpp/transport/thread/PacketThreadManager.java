@@ -1,5 +1,7 @@
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +33,10 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return threads.get(id);
 	}
 
+	public Collection<String> getThreadIDs() {
+		return Collections.unmodifiableCollection(threads.keySet());
+	}
+
 	@Override
 	public String generateThreadID() throws TransportException {
 		return generator.generateThreadID();
@@ -38,6 +44,7 @@ public class PacketThreadManager implements ThreadIDGenerator {
 
 	/**
 	 * Add a thread with a known (remote) ID
+	 * 
 	 * @param transport
 	 * @param id
 	 * @param handler

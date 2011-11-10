@@ -15,15 +15,12 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
-import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
+import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
-import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
-import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
-import de.ovgu.dke.glue.xmpp.serialization.XMPPThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 
@@ -82,12 +79,14 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			Presence.Type.unavailable);
 
 	/**
-	 * Create a new, configured but uninitialized client instance. The XMPP
-	 * configuration is obtained from the plugin environment
-	 * (conf/xmpp.properties).
+	 * Create a new, configured but uninitialized client instance.
 	 * 
-	 * @throws IllegalStateException
-	 *             if the plugin environment could not be found
+	 * @param config
+	 *            The XMPP configuration
+	 * @param handlerFactory
+	 *            default packet handler factory.
+	 * @throws NullPointerException
+	 *             if the <code>config</code> parameter is <code>null</code>.
 	 */
 	public XMPPClient(final XMPPConfiguration config,
 			final PacketHandlerFactory handlerFactory) {
@@ -137,56 +136,61 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 * 
 	 * @throws IllegalStateException
 	 *             if there is already a connection.
-	 * @throws XMPPException
+	 * @throws TransportException
 	 *             when an errors during XMPP communication occurs.
 	 */
-	public void startup() throws XMPPException {
-		synchronized (conn_lock) {
-			// TODO use XMPPException
-			if (connection != null)
-				throw new IllegalStateException("Connection already exists.");
+	public void startup() throws TransportException {
+		try {
+			synchronized (conn_lock) {
+				if (connection != null)
+					throw new TransportException("Connection already exists.");
 
-			final ConnectionConfiguration conn_config = new ConnectionConfiguration(
-					xmppconfig.getServer());
-			conn_config.setCompressionEnabled(xmppconfig.isCompression());
+				final ConnectionConfiguration conn_config = new ConnectionConfiguration(
+						xmppconfig.getServer());
+				conn_config.setCompressionEnabled(xmppconfig.isCompression());
 
-			// adapt online priority to configuration
-			PRESENCE_ONLINE.setPriority(xmppconfig.getPriority());
+				// adapt online priority to configuration
+				PRESENCE_ONLINE.setPriority(xmppconfig.getPriority());
 
-			// do not send an initial presence
-			conn_config.setSendPresence(false);
+				// do not send an initial presence
+				conn_config.setSendPresence(false);
 
-			String resource = xmppconfig.getResource();
-			// generate a resource name if none is given
-			if (resource == null || resource.length() == 0)
-				resource = "xmpp" + System.currentTimeMillis();
+				String resource = xmppconfig.getResource();
+				// generate a resource name if none is given
+				if (resource == null || resource.length() == 0)
+					resource = "xmpp" + System.currentTimeMillis();
 
-			// allow reconnection
-			conn_config.setReconnectionAllowed(true);
+				// allow reconnection
+				conn_config.setReconnectionAllowed(true);
 
-			// create a new connection
-			connection = new XMPPConnection(conn_config);
+				// create a new connection
+				connection = new XMPPConnection(conn_config);
 
-			// establish the connection
-			connection.connect();
+				// establish the connection
+				connection.connect();
 
-			// add this client as connection listener
-			connection.addConnectionListener(this);
-			connection.addPacketListener(this, null);
+				// add this client as connection listener
+				connection.addConnectionListener(this);
+				connection.addPacketListener(this, null);
 
-			// login
-			connection.login(xmppconfig.getUser(), xmppconfig.getPass(),
-					resource);
+				// login
+				connection.login(xmppconfig.getUser(), xmppconfig.getPass(),
+						resource);
 
-			// create the thread manager for this connection
-			this.threads = new PacketThreadManager(
-					new CountingThreadIDGenerator(this.getLocalURI()));
+				// create the thread manager for this connection
+				this.threads = new PacketThreadManager(
+						new CountingThreadIDGenerator(this.getLocalURI()));
 
-			// go online
-			connection.sendPacket(PRESENCE_ONLINE);
+				// go online
+				connection.sendPacket(PRESENCE_ONLINE);
+			}
+
+			logger.info("XMPP connection established.");
+		} catch (XMPPException e) {
+			throw new TransportException(
+					"Error during initialization of XMPP connection: "
+							+ e.getMessage(), e);
 		}
-
-		logger.info("XMPP connection established.");
 	}
 
 	@Override
@@ -201,66 +205,35 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 			final XMPPTransport transport = findTransport(msg.getFrom());
 
 			// create XMPP packet from smack packet
-			XMPPPacket pkt = null;
-
-			// get the converter
-			SmackMessageConverter conv = transport.getConverter();
-			// if there is no converter, we try different methods:
-			// first the XMPP threading (XEP-0201),
-			// then thread info in body
-			if (conv == null) {
-				// try the XMPP threading converter first
-				conv = new XMPPThreadSmackPacketConverter();
-				pkt = conv.fromSmack(msg);
-
-				// use the text based threading converter if there was no thread
-				// attached
-				if (pkt.thread_id == null || pkt.thread_id.isEmpty()) {
-					conv = new TextThreadSmackPacketConverter();
-					pkt = conv.fromSmack(msg);
-				}
-			} else
-				pkt = conv.fromSmack(msg);
-
-			if (pkt.thread_id == null) {
-				System.err.println("Packet thread ID for " + pkt.thread_id
-						+ " could not be retrieved!");
-				return;
-			} else if (transport.getConverter() == null) {
-				// if we are fine here, store the converter
-				transport.setConverter(conv);
-			}
+			XMPPPacket pkt = transport.processSmackMessage(msg);
 
 			// TODO check ID consistency
 
 			XMPPPacketThread pt = threads.retrieveThread(pkt.thread_id);
 
 			if (pt == null) {
-				System.out.println("Creating new packet thread with ID "
+				logger.debug("Creating new packet thread with ID "
 						+ pkt.thread_id);
 				pt = (XMPPPacketThread) threads.addThread(transport,
 						pkt.thread_id, transport.getDefaultPacketHandler());
 			}
 
 			if (pt != null) {
+				// adapt the threads effective JID
 				pt.setEffectiveJID(URI.create("xmpp:" + pkt.sender));
 
 				// TODO handle message in thread
-				// adapt the threads effective JID
-				System.out.println(pt.getTransport().getPeer());
-
-				System.out.println("Payload:\n" + pkt.getPayload());
+				logger.debug(pt.getTransport().getPeer());
+				logger.debug("Payload:\n" + pkt.getPayload());
 
 				// TODO call via thread
 				if (pt.getHandler() != null)
 					pt.getHandler().handle(pt, pkt);
 				else
-					System.err.println("No packet handler defined for thread "
+					logger.error("No packet handler defined for thread "
 							+ pt.getId());
 			}
 		} catch (TransportException e) {
-			e.printStackTrace();
-		} catch (SerializationException e) {
 			e.printStackTrace();
 		}
 	}
@@ -307,8 +280,16 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	public void teardown() {
 		synchronized (conn_lock) {
 			if (connection != null) {
-				// remove the id generator
+				// dispose the threads
+				for (String id : this.threads.getThreadIDs()) {
+					final PacketThread pt = this.threads.retrieveThread(id);
+					if (pt != null)
+						pt.dispose();
+				}
 				this.threads = null;
+
+				// close the transports
+				this.transports.clear();
 
 				// go offline and disconnect
 				connection.removePacketListener(this);

@@ -15,7 +15,7 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory;
 public class TestClient {
 	public static void main(String args[]) throws TransportException, IOException {
 
-		// init and register transport factory
+		// initialize and register transport factory
 		new XMPPTransportFactory(new EchoPacketHandlerFactory())
 				.registerAsDefault();
 
