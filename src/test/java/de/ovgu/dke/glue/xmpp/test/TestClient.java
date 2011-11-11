@@ -25,10 +25,8 @@ public class TestClient {
 				new EchoPacketHandlerFactory(), true);
 
 		// get a transport
-		final Transport xmpp = TransportRegistry
-				.getInstance()
-				.getDefaultTransportFactory()
-				.createTransport(
+		final Transport xmpp = TransportRegistry.getInstance()
+				.getDefaultTransportFactory().createTransport(
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		// create a packet thread
@@ -51,6 +49,7 @@ public class TestClient {
 
 	}
 
+	// TODO in die registry
 	public static TransportFactory initTransportFactory(String factoryClass,
 			PacketHandlerFactory handlerFactory, boolean asDefault)
 			throws TransportException {
@@ -103,7 +102,7 @@ class EchoPacketHandlerFactory implements PacketHandlerFactory {
 
 	@Override
 	public synchronized PacketHandler createPacketHandler()
-			throws TransportException {
+			throws InstantiationException {
 		if (echoHandler == null)
 			echoHandler = new EchoHandler();
 
@@ -113,8 +112,12 @@ class EchoPacketHandlerFactory implements PacketHandlerFactory {
 
 class EchoHandler implements PacketHandler {
 	@Override
-	public void handle(PacketThread packetThread, Packet packet)
-			throws TransportException {
-		packetThread.send(packet.getPayload(), packet.getPriority());
+	public void handle(PacketThread packetThread, Packet packet) {
+		try {
+			packetThread.send(packet.getPayload(), packet.getPriority());
+		} catch (TransportException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

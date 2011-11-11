@@ -13,7 +13,7 @@ import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
 public class XMPPTransportFactory implements TransportFactory {
-	// TODO als Methode anbieten?
+	// TODO als Methode anbieten, aber mit Möglichkeit zum Überladen
 	public static final String DEFAULT_REGISTRY_KEY = "xmpp";
 
 	private final XMPPClient client;
@@ -40,6 +40,7 @@ public class XMPPTransportFactory implements TransportFactory {
 	/**
 	 * Register this transport factory as default
 	 */
+	// TODO in die registry
 	public void registerAsDefault() {
 		TransportRegistry.getInstance().registerTransportFactory(
 				XMPPTransportFactory.DEFAULT_REGISTRY_KEY, this);

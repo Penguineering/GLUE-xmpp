@@ -232,6 +232,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 				// TODO call via thread
 				if (pt.getHandler() != null)
+					//TODO alle throwables abfangen
 					pt.getHandler().handle(pt, pkt);
 				else
 					logger.error("No packet handler defined for thread "
