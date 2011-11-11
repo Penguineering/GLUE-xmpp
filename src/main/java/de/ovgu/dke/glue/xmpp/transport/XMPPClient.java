@@ -19,7 +19,6 @@ import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
@@ -33,8 +32,7 @@ import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
-public class XMPPClient implements PacketListener, ConnectionListener,
-		TransportFactory {
+public class XMPPClient implements PacketListener, ConnectionListener {
 	static Log logger = LogFactory.getLog(XMPPClient.class);
 
 	private final XMPPConfiguration xmppconfig;
@@ -108,7 +106,6 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	}
 
 	// TODO synchronization
-	@Override
 	public void setDefaultPacketHandlerFactory(
 			PacketHandlerFactory handlerFactory) throws TransportException {
 		this.handler_factory = handlerFactory;
@@ -118,7 +115,6 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 		return this.handler_factory;
 	}
 
-	@Override
 	public Transport createTransport(URI peer) throws TransportException {
 		try {
 			XMPPTransport transport = transports.get(peer);
@@ -222,7 +218,8 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 				logger.debug("Creating new packet thread with ID "
 						+ pkt.thread_id);
 				pt = (XMPPPacketThread) threads.addThread(transport,
-						pkt.thread_id, this.getDefaultPacketHandlerFactory().createPacketHandler());
+						pkt.thread_id, this.getDefaultPacketHandlerFactory()
+								.createPacketHandler());
 			}
 
 			if (pt != null) {

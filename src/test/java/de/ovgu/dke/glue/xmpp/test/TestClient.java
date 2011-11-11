@@ -1,8 +1,6 @@
 package de.ovgu.dke.glue.xmpp.test;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
 import de.ovgu.dke.glue.api.transport.Packet;
@@ -11,22 +9,21 @@ import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.api.transport.TransportRegistry;
-import de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory;
 
 public class TestClient {
 	public static void main(String args[]) throws TransportException,
 			IOException {
 
 		// initialize and register transport factory
-		initTransportFactory(
+		TransportRegistry.getInstance().loadTransportFactory(
 				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-				new EchoPacketHandlerFactory(), true);
+				new EchoPacketHandlerFactory(), TransportRegistry.AS_DEFAULT,
+				TransportRegistry.DEFAULT_KEY);
 
 		// get a transport
-		final Transport xmpp = TransportRegistry.getInstance()
-				.getDefaultTransportFactory().createTransport(
+		final Transport xmpp = TransportRegistry.getDefaultTransportFactory()
+				.createTransport(
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		// create a packet thread
@@ -44,56 +41,7 @@ public class TestClient {
 		thread.dispose();
 
 		// dispose the transport factory
-		((XMPPTransportFactory) TransportRegistry.getInstance()
-				.getDefaultTransportFactory()).dispose();
-
-	}
-
-	// TODO in die registry
-	public static TransportFactory initTransportFactory(String factoryClass,
-			PacketHandlerFactory handlerFactory, boolean asDefault)
-			throws TransportException {
-		try {
-			// get the class
-			final Class<?> clazz = Class.forName(factoryClass);
-
-			// create instance
-			final Constructor<?> con = clazz.getConstructor();
-			final XMPPTransportFactory factory = (XMPPTransportFactory) con
-					.newInstance();
-
-			// some setup
-			if (factory != null) {
-				factory.setDefaultPacketHandlerFactory(handlerFactory);
-				if (asDefault)
-					factory.registerAsDefault();
-			}
-
-			return factory;
-		} catch (ClassNotFoundException e) {
-			throw new TransportException("Factory class " + factoryClass
-					+ " could not be found!", e);
-		} catch (SecurityException e) {
-			throw new TransportException(
-					"Security exception on accessing constructor for "
-							+ factoryClass + ": " + e.getMessage(), e);
-		} catch (NoSuchMethodException e) {
-			throw new TransportException("Method could not be found: "
-					+ e.getMessage(), e);
-		} catch (IllegalArgumentException e) {
-			throw new TransportException(
-					"Illegal arguments calling constructor for " + factoryClass
-							+ ": " + e.getMessage(), e);
-		} catch (InstantiationException e) {
-			throw new TransportException("Could not instantiate "
-					+ factoryClass + ": " + e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			throw new TransportException("Illegal access: " + e.getMessage(), e);
-		} catch (InvocationTargetException e) {
-			throw new TransportException("Invocation target exception: "
-					+ e.getMessage(), e);
-		}
-
+		TransportRegistry.getInstance().disposeAll();
 	}
 }
 
