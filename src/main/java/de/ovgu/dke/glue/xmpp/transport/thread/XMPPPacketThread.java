@@ -38,6 +38,7 @@ public class XMPPPacketThread implements PacketThread {
 		return id;
 	}
 
+	@Override
 	public XMPPTransport getTransport() {
 		return transport;
 	}
@@ -104,5 +105,10 @@ public class XMPPPacketThread implements PacketThread {
 		} else if (!transport.equals(other.transport))
 			return false;
 		return true;
+	}
+
+	@Override
+	public URI getPeer() {
+		return effective_jid;
 	}
 }
