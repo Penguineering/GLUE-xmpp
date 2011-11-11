@@ -4,6 +4,8 @@ import java.net.URI;
 
 import org.jivesoftware.smack.packet.Packet;
 
+import de.ovgu.dke.glue.util.transport.AbstractPacket;
+
 public class XMPPPacket extends AbstractPacket {
 	public URI sender;
 	public URI receiver;
