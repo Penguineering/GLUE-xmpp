@@ -40,7 +40,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
-	private final PacketHandlerFactory handler_factory;
+	private PacketHandlerFactory handler_factory;
 
 	private PacketThreadManager threads;
 
@@ -88,13 +88,10 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 * @throws NullPointerException
 	 *             if the <code>config</code> parameter is <code>null</code>.
 	 */
-	public XMPPClient(final XMPPConfiguration config,
-			final PacketHandlerFactory handlerFactory) {
+	public XMPPClient(final XMPPConfiguration config) {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
 		this.xmppconfig = config;
-
-		this.handler_factory = handlerFactory;
 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 		this.threads = null;
@@ -107,6 +104,12 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 */
 	public XMPPConfiguration getXmppconfig() {
 		return xmppconfig;
+	}
+
+	// TODO synchronization
+	public void setDefaultPackerHandlerFactory(
+			PacketHandlerFactory handlerFactory) throws TransportException {
+		this.handler_factory = handlerFactory;
 	}
 
 	@Override

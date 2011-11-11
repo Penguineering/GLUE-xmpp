@@ -12,19 +12,17 @@ import de.ovgu.dke.glue.api.transport.TransportRegistry;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
-// FIXME: eher vom XMPPClient implementieren lassen?
 public class XMPPTransportFactory implements TransportFactory {
 	// TODO als Methode anbieten?
 	public static final String DEFAULT_REGISTRY_KEY = "xmpp";
 
 	private final XMPPClient client;
 
-	public XMPPTransportFactory(final PacketHandlerFactory handlerFactory)
+	public XMPPTransportFactory()
 			throws TransportException {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
-			this.client = new XMPPClient(confLoader.loadConfiguration(),
-					handlerFactory);
+			this.client = new XMPPClient(confLoader.loadConfiguration());
 			this.client.startup();
 		} catch (ConfigurationException e) {
 			throw new TransportException("Error loading the configuration: "
@@ -47,6 +45,13 @@ public class XMPPTransportFactory implements TransportFactory {
 				XMPPTransportFactory.DEFAULT_REGISTRY_KEY, this);
 		TransportRegistry.getInstance().setDefaultTransportFactory(
 				XMPPTransportFactory.DEFAULT_REGISTRY_KEY);
+	}
+
+	public void setDefaultPackerHandlerFactory(
+			PacketHandlerFactory handlerFactory) throws TransportException {
+		if (client == null)
+			throw new TransportException("Client has not been initialized!");
+		client.setDefaultPackerHandlerFactory(handlerFactory);
 	}
 
 	@Override
