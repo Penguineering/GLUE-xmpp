@@ -108,9 +108,14 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	}
 
 	// TODO synchronization
-	public void setDefaultPackerHandlerFactory(
+	@Override
+	public void setDefaultPacketHandlerFactory(
 			PacketHandlerFactory handlerFactory) throws TransportException {
 		this.handler_factory = handlerFactory;
+	}
+
+	public PacketHandlerFactory getDefaultPacketHandlerFactory() {
+		return this.handler_factory;
 	}
 
 	@Override
@@ -120,8 +125,6 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 			if (transport == null) {
 				transport = new XMPPTransport(peer, this, threads);
-				transport.setDefaultPackerHandler(handler_factory
-						.createPacketHandler());
 				transports.put(peer, transport);
 			}
 
@@ -219,7 +222,7 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 				logger.debug("Creating new packet thread with ID "
 						+ pkt.thread_id);
 				pt = (XMPPPacketThread) threads.addThread(transport,
-						pkt.thread_id, transport.getDefaultPacketHandler());
+						pkt.thread_id, this.getDefaultPacketHandlerFactory().createPacketHandler());
 			}
 
 			if (pt != null) {
@@ -232,13 +235,15 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 
 				// TODO call via thread
 				if (pt.getHandler() != null)
-					//TODO alle throwables abfangen
+					// TODO alle throwables abfangen
 					pt.getHandler().handle(pt, pkt);
 				else
 					logger.error("No packet handler defined for thread "
 							+ pt.getId());
 			}
 		} catch (TransportException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
 			e.printStackTrace();
 		}
 	}

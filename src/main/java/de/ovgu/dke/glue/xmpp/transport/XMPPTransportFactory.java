@@ -18,8 +18,7 @@ public class XMPPTransportFactory implements TransportFactory {
 
 	private final XMPPClient client;
 
-	public XMPPTransportFactory()
-			throws TransportException {
+	public XMPPTransportFactory() throws TransportException {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
 			this.client = new XMPPClient(confLoader.loadConfiguration());
@@ -48,11 +47,12 @@ public class XMPPTransportFactory implements TransportFactory {
 				XMPPTransportFactory.DEFAULT_REGISTRY_KEY);
 	}
 
-	public void setDefaultPackerHandlerFactory(
+	@Override
+	public void setDefaultPacketHandlerFactory(
 			PacketHandlerFactory handlerFactory) throws TransportException {
 		if (client == null)
 			throw new TransportException("Client has not been initialized!");
-		client.setDefaultPackerHandlerFactory(handlerFactory);
+		client.setDefaultPacketHandlerFactory(handlerFactory);
 	}
 
 	@Override

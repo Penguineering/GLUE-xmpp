@@ -64,7 +64,7 @@ public class TestClient {
 
 			// some setup
 			if (factory != null) {
-				factory.setDefaultPackerHandlerFactory(handlerFactory);
+				factory.setDefaultPacketHandlerFactory(handlerFactory);
 				if (asDefault)
 					factory.registerAsDefault();
 			}

@@ -11,6 +11,7 @@ import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.transport.LifecycleListener;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
+import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
@@ -28,8 +29,6 @@ public class XMPPTransport implements Transport {
 
 	private final ReportListenerSupport report_listeners;
 	private final Collection<LifecycleListener> lifecycle_listeners;
-
-	private PacketHandler defaultPacketHandler;
 
 	private SmackMessageConverter converter;
 
@@ -90,8 +89,25 @@ public class XMPPTransport implements Transport {
 	@Override
 	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
-		return threads.createThread(this,
-				handler == null ? defaultPacketHandler : handler);
+		try {
+			PacketHandler hnd = handler;
+			if (hnd == null) {
+				PacketHandlerFactory factory = client
+						.getDefaultPacketHandlerFactory();
+				if (factory != null)
+					hnd = factory.createPacketHandler();
+			}
+
+			if (hnd == null)
+				throw new TransportException(
+						"Invalid value for packet handler: null!");
+
+			return threads.createThread(this, hnd);
+		} catch (InstantiationException e) {
+			throw new TransportException(
+					"Could not instantiate packet handler: " + e.getMessage(),
+					e);
+		}
 	}
 
 	public void disposeThread(PacketThread thread) {
@@ -99,17 +115,8 @@ public class XMPPTransport implements Transport {
 			threads.removeThread(((XMPPPacketThread) thread).getId());
 	}
 
-	@Override
-	public void setDefaultPackerHandler(PacketHandler handler) {
-		this.defaultPacketHandler = handler;
-	}
-
-	public PacketHandler getDefaultPacketHandler() {
-		return this.defaultPacketHandler;
-	}
-
-	public void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)
-			throws TransportException {
+	public void sendPacket(final XMPPPacketThread thread,
+			final XMPPPacket packet) throws TransportException {
 		// check thread
 		final XMPPPacketThread lt = threads.retrieveThread(thread.getId());
 
