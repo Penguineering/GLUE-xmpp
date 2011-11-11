@@ -1,15 +1,10 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.LinkedList;
 
 import org.jivesoftware.smack.packet.Message;
 
-import de.ovgu.dke.glue.api.reporting.ReportListener;
-import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
-import de.ovgu.dke.glue.api.transport.LifecycleListener;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
@@ -27,8 +22,6 @@ public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
 
-	private final ReportListenerSupport report_listeners;
-	private final Collection<LifecycleListener> lifecycle_listeners;
 
 	private SmackMessageConverter converter;
 
@@ -39,8 +32,6 @@ public class XMPPTransport implements Transport {
 		this.peer = peer;
 		this.client = client;
 
-		this.report_listeners = new ReportListenerSupport(this);
-		this.lifecycle_listeners = new LinkedList<LifecycleListener>();
 		this.threads = threads;
 
 		this.converter = null;
@@ -52,38 +43,6 @@ public class XMPPTransport implements Transport {
 
 	public XMPPClient getClient() {
 		return client;
-	}
-
-	@Override
-	public void addReportListener(ReportListener listener) {
-		report_listeners.addReportListener(listener);
-	}
-
-	@Override
-	public void removeReportListener(ReportListener listener) {
-		report_listeners.removeReportListener(listener);
-	}
-
-	@Override
-	public void addLifecycleListener(LifecycleListener listener) {
-		synchronized (lifecycle_listeners) {
-			lifecycle_listeners.add(listener);
-		}
-	}
-
-	@Override
-	public void removeLifecycleListener(LifecycleListener listener) {
-		synchronized (lifecycle_listeners) {
-			lifecycle_listeners.remove(listener);
-		}
-	}
-
-	protected void fireLifecycleListeners(Transport.Status oldStatus,
-			Transport.Status newStatus) {
-		synchronized (lifecycle_listeners) {
-			for (final LifecycleListener listener : lifecycle_listeners)
-				listener.onStatusChange(this, oldStatus, newStatus);
-		}
 	}
 
 	@Override

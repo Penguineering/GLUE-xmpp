@@ -1,6 +1,8 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -15,10 +17,14 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
+import de.ovgu.dke.glue.api.reporting.ReportListener;
+import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
+import de.ovgu.dke.glue.api.reporting.Reporter;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.api.transport.TransportLifecycleListener;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
@@ -32,10 +38,13 @@ import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
-public class XMPPClient implements PacketListener, ConnectionListener {
+public class XMPPClient implements PacketListener, ConnectionListener, Reporter {
 	static Log logger = LogFactory.getLog(XMPPClient.class);
 
 	private final XMPPConfiguration xmppconfig;
+
+	private final ReportListenerSupport report_listeners;
+	private final Collection<TransportLifecycleListener> lifecycle_listeners;
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
@@ -91,6 +100,9 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
 		this.xmppconfig = config;
+
+		this.report_listeners = new ReportListenerSupport(this);
+		this.lifecycle_listeners = new LinkedList<TransportLifecycleListener>();
 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 		this.threads = null;
@@ -353,5 +365,35 @@ public class XMPPClient implements PacketListener, ConnectionListener {
 			jid = connection.getUser();
 		}
 		return jid == null ? null : URI.create("xmpp:" + jid);
+	}
+
+	@Override
+	public void addReportListener(ReportListener listener) {
+		report_listeners.addReportListener(listener);
+	}
+
+	@Override
+	public void removeReportListener(ReportListener listener) {
+		report_listeners.removeReportListener(listener);
+	}
+
+	public void addLifecycleListener(TransportLifecycleListener listener) {
+		synchronized (lifecycle_listeners) {
+			lifecycle_listeners.add(listener);
+		}
+	}
+
+	public void removeLifecycleListener(TransportLifecycleListener listener) {
+		synchronized (lifecycle_listeners) {
+			lifecycle_listeners.remove(listener);
+		}
+	}
+
+	protected void fireLifecycleListeners(Transport transport,
+			Transport.Status oldStatus, Transport.Status newStatus) {
+		synchronized (lifecycle_listeners) {
+			for (final TransportLifecycleListener listener : lifecycle_listeners)
+				listener.onStatusChange(transport, oldStatus, newStatus);
+		}
 	}
 }

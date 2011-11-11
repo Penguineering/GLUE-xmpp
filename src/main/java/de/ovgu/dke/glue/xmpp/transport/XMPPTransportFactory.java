@@ -4,10 +4,12 @@ import java.net.URI;
 
 import org.apache.commons.configuration.ConfigurationException;
 
+import de.ovgu.dke.glue.api.reporting.ReportListener;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
+import de.ovgu.dke.glue.api.transport.TransportLifecycleListener;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
@@ -56,6 +58,32 @@ public class XMPPTransportFactory implements TransportFactory {
 	@Override
 	public String getDefaultRegistryKey() {
 		return DEFAULT_REGISTRY_KEY;
+	}
+
+	@Override
+	public void addReportListener(ReportListener listener) {
+		if (client != null)
+			client.addReportListener(listener);
+	}
+
+	@Override
+	public void removeReportListener(ReportListener listener) {
+		if (client != null)
+			client.removeReportListener(listener);
+	}
+
+	@Override
+	public void addTransportLifecycleListener(
+			TransportLifecycleListener listener) {
+		if (client != null)
+			client.addLifecycleListener(listener);
+	}
+
+	@Override
+	public void removeTransportLifecycleListener(
+			TransportLifecycleListener listener) {
+		if (client != null)
+			client.removeLifecycleListener(listener);
 	}
 
 }
