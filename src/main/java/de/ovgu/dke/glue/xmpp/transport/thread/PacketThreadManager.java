@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.xmpp.transport.XMPPPacketThread;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 
 public class PacketThreadManager implements ThreadIDGenerator {

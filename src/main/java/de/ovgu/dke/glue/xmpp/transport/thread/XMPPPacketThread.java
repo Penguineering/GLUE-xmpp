@@ -1,4 +1,4 @@
-package de.ovgu.dke.glue.xmpp.transport;
+package de.ovgu.dke.glue.xmpp.transport.thread;
 
 import java.net.URI;
 
@@ -6,6 +6,8 @@ import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
+import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 
 //TODO synchronization
 public class XMPPPacketThread implements PacketThread {
@@ -64,18 +66,12 @@ public class XMPPPacketThread implements PacketThread {
 	@Override
 	public void send(Object payload, Packet.Priority priority)
 			throws TransportException {
-		try {
-			final XMPPPacket pkt = new XMPPPacket(payload, priority);
-			pkt.sender = transport.getClient().getLocalURI();
-			pkt.receiver = effective_jid;
-			pkt.thread_id = this.getId();
+		final XMPPPacket pkt = new XMPPPacket(payload, priority);
+		pkt.sender = transport.getClient().getLocalURI();
+		pkt.receiver = effective_jid;
+		pkt.thread_id = this.getId();
 
-			transport.sendPacket(this, pkt);
-		} catch (ClassCastException e) {
-			throw new TransportException(
-					"Error converting packet to XMPP packet, invalid implementation type!",
-					e);
-		}
+		transport.sendPacket(this, pkt);
 	}
 
 	@Override

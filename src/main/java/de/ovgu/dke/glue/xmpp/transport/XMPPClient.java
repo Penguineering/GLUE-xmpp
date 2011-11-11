@@ -23,6 +23,7 @@ import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
+import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
 /**
  * XMPP Client to receive and evaluate XMPP requests.
@@ -282,6 +283,9 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 	 */
 	public void teardown() {
 		synchronized (conn_lock) {
+			// TODO thread sollten beim Schließen der einzelnen Transports
+			// "entsorgt" werden.
+
 			if (connection != null) {
 				// dispose the threads
 				for (String id : this.threads.getThreadIDs()) {
@@ -298,11 +302,6 @@ public class XMPPClient implements PacketListener, ConnectionListener,
 				connection.removePacketListener(this);
 				connection.disconnect(PRESENCE_OFFLINE);
 				connection = null;
-
-				// remove the handler
-				// synchronized (handler_lock) {
-				// m_handler = null;
-				// }
 
 				logger.info("XMPP connection has been closed.");
 			}

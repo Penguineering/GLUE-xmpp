@@ -18,6 +18,7 @@ import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.serialization.XMPPThreadSmackPacketConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
+import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
 // follows http://xmpp.org/extensions/xep-0201.html for message threading
 // TODO variables threading-verfahren korrekt umsetzen
@@ -50,7 +51,7 @@ public class XMPPTransport implements Transport {
 		return peer;
 	}
 
-	protected XMPPClient getClient() {
+	public XMPPClient getClient() {
 		return client;
 	}
 
@@ -93,7 +94,7 @@ public class XMPPTransport implements Transport {
 				handler == null ? defaultPacketHandler : handler);
 	}
 
-	void disposeThread(PacketThread thread) {
+	public void disposeThread(PacketThread thread) {
 		if (thread != null)
 			threads.removeThread(((XMPPPacketThread) thread).getId());
 	}
@@ -107,7 +108,7 @@ public class XMPPTransport implements Transport {
 		return this.defaultPacketHandler;
 	}
 
-	void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)
+	public void sendPacket(final XMPPPacketThread thread, final XMPPPacket packet)
 			throws TransportException {
 		// check thread
 		final XMPPPacketThread lt = threads.retrieveThread(thread.getId());
