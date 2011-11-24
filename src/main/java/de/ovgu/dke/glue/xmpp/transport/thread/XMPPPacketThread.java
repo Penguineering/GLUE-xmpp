@@ -10,7 +10,7 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 
 //TODO synchronization
-public class XMPPPacketThread implements PacketThread {
+public class XMPPPacketThread extends PacketThread {
 	private final XMPPTransport transport;
 
 	private final String id;
@@ -65,7 +65,7 @@ public class XMPPPacketThread implements PacketThread {
 	}
 
 	@Override
-	public void send(Object payload, Packet.Priority priority)
+	protected void sendSerializedPayload(Object payload, Packet.Priority priority)
 			throws TransportException {
 		final XMPPPacket pkt = new XMPPPacket(payload, priority);
 		pkt.sender = transport.getClient().getLocalURI();

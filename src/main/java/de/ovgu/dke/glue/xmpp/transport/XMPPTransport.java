@@ -5,6 +5,7 @@ import java.net.URI;
 import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.serialization.SerializationException;
+import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
@@ -177,5 +178,17 @@ public class XMPPTransport implements Transport {
 		} else if (!peer.equals(other.peer))
 			return false;
 		return true;
+	}
+
+	@Override
+	public boolean checkCapabilities() throws TransportException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Serializer getSerializer() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
