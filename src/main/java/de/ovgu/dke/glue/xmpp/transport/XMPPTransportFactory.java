@@ -5,6 +5,7 @@ import java.net.URI;
 import org.apache.commons.configuration.ConfigurationException;
 
 import de.ovgu.dke.glue.api.reporting.ReportListener;
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
@@ -42,6 +43,13 @@ public class XMPPTransportFactory implements TransportFactory {
 		if (client == null)
 			throw new TransportException("Client has not been initialized!");
 		client.setDefaultPacketHandlerFactory(handlerFactory);
+	}
+	
+	@Override
+	public void setSerializationProvider(SerializationProvider provider)
+			throws TransportException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -85,5 +93,4 @@ public class XMPPTransportFactory implements TransportFactory {
 		if (client != null)
 			client.removeLifecycleListener(listener);
 	}
-
 }
