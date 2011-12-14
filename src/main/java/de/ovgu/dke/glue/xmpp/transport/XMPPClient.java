@@ -20,6 +20,7 @@ import org.jivesoftware.smack.packet.Presence;
 import de.ovgu.dke.glue.api.reporting.ReportListener;
 import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
 import de.ovgu.dke.glue.api.reporting.Reporter;
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
@@ -49,6 +50,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
 	private PacketHandlerFactory handler_factory;
+	private SerializationProvider serializers;
 
 	private PacketThreadManager threads;
 
@@ -127,12 +129,21 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		return this.handler_factory;
 	}
 
+	public void setDefaultSerializationProvider(
+			final SerializationProvider serializers) {
+		this.serializers = serializers;
+	}
+
+	public SerializationProvider getDefaultSerializationProvider() {
+		return serializers;
+	}
+
 	public Transport createTransport(URI peer) throws TransportException {
 		try {
 			XMPPTransport transport = transports.get(peer);
 
 			if (transport == null) {
-				transport = new XMPPTransport(peer, this, threads);
+				transport = new XMPPTransport(peer, this, threads, serializers);
 				transports.put(peer, transport);
 			}
 

@@ -1,10 +1,12 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
+import java.util.List;
 
 import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.serialization.SerializationException;
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
@@ -23,17 +25,20 @@ public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
 
-
 	private SmackMessageConverter converter;
 
 	private final PacketThreadManager threads;
+	private final SerializationProvider serializers;
+
+	private Serializer currentSerializer = null;
 
 	public XMPPTransport(final URI peer, final XMPPClient client,
-			PacketThreadManager threads) {
+			PacketThreadManager threads, SerializationProvider serializers) {
 		this.peer = peer;
 		this.client = client;
 
 		this.threads = threads;
+		this.serializers = serializers;
 
 		this.converter = null;
 	}
@@ -182,13 +187,38 @@ public class XMPPTransport implements Transport {
 
 	@Override
 	public boolean checkCapabilities() throws TransportException {
-		// TODO Auto-generated method stub
+		// TODO das muss ausgehandelt werden!
+		if (serializers != null) {
+
+			// our format is String
+			final String format = SerializationProvider.STRING;
+
+			// get the list
+			final List<String> schemas = serializers.getSchemas(format);
+			final String schema = schemas.get(0);
+
+			try {
+				currentSerializer = serializers.getSerializer(format, schema);
+				return true;
+			} catch (SerializationException e) {
+				throw new TransportException(
+						"Error obtaining serializer for format " + format
+								+ " and schema " + schema);
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public Serializer getSerializer() {
-		// TODO Auto-generated method stub
-		return null;
+		if (currentSerializer == null)
+			try {
+				checkCapabilities();
+			} catch (TransportException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		return currentSerializer;
 	}
 }

@@ -19,7 +19,7 @@ public class XMPPTransportFactory implements TransportFactory {
 
 	private XMPPClient client;
 
-	public XMPPTransportFactory()  {
+	public XMPPTransportFactory() {
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class XMPPTransportFactory implements TransportFactory {
 		} catch (TransportException e) {
 			throw new TransportException("Error during client initialization: "
 					+ e.getMessage(), e);
-		}		
+		}
 	}
 
 	@Override
@@ -44,12 +44,11 @@ public class XMPPTransportFactory implements TransportFactory {
 			throw new TransportException("Client has not been initialized!");
 		client.setDefaultPacketHandlerFactory(handlerFactory);
 	}
-	
+
 	@Override
 	public void setSerializationProvider(SerializationProvider provider)
 			throws TransportException {
-		// TODO Auto-generated method stub
-		
+		client.setDefaultSerializationProvider(provider);
 	}
 
 	@Override
