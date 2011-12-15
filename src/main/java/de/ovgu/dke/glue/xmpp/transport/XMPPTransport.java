@@ -40,7 +40,7 @@ public class XMPPTransport implements Transport {
 		this.threads = threads;
 		this.serializers = serializers;
 
-		this.converter = null;
+		this.converter = new TextThreadSmackPacketConverter();
 	}
 
 	public final URI getPeer() {
@@ -124,16 +124,16 @@ public class XMPPTransport implements Transport {
 			if (conv == null) {
 				// try the XMPP threading converter first
 				conv = new XMPPThreadSmackPacketConverter();
-				pkt = conv.fromSmack(msg);
+				pkt = conv.fromSmack(msg, currentSerializer);
 
 				// use the text based threading converter if there was no thread
 				// attached
 				if (pkt.thread_id == null || pkt.thread_id.isEmpty()) {
 					conv = new TextThreadSmackPacketConverter();
-					pkt = conv.fromSmack(msg);
+					pkt = conv.fromSmack(msg, currentSerializer);
 				}
 			} else
-				pkt = conv.fromSmack(msg);
+				pkt = conv.fromSmack(msg, currentSerializer);
 
 			if (pkt.thread_id == null) {
 				throw new TransportException("Packet thread ID for "
@@ -142,6 +142,8 @@ public class XMPPTransport implements Transport {
 				// if we are fine here, store the converter
 				this.setConverter(conv);
 			}
+			
+			// deserialize the content
 
 			// return the packet
 			return pkt;

@@ -5,11 +5,11 @@ import java.net.URI;
 import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.serialization.SerializationException;
+import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
 
 public abstract class AbstractSmackPacketConverter implements
 		SmackMessageConverter {
-
 	@Override
 	public Message toSmack(XMPPPacket pkt) throws SerializationException {
 		Message msg = new Message(uri2jid(pkt.receiver));
@@ -21,8 +21,13 @@ public abstract class AbstractSmackPacketConverter implements
 	}
 
 	@Override
-	public XMPPPacket fromSmack(Message msg) throws SerializationException {
-		XMPPPacket pkt = new XMPPPacket(getPayload(msg),
+	public XMPPPacket fromSmack(Message msg, Serializer serializer)
+			throws SerializationException {
+		Object payload = getPayload(msg);
+		if (serializer != null) {
+			payload = serializer.deserialize(payload);
+		}
+		XMPPPacket pkt = new XMPPPacket(payload,
 				de.ovgu.dke.glue.api.transport.Packet.Priority.DEFERRABLE);
 		pkt.receiver = URI.create("xmpp:" + msg.getTo());
 		pkt.sender = URI.create("xmpp:" + msg.getFrom());
