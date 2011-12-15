@@ -98,7 +98,12 @@
 			<artifactId>glue-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
-			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>de.ovgu.dke.glue</groupId>
+			<artifactId>glue-util</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
