@@ -18,6 +18,8 @@ public class XMPPTransportFactory implements TransportFactory {
 	public static final String DEFAULT_REGISTRY_KEY = "xmpp";
 
 	private XMPPClient client;
+	private PacketHandlerFactory defaultPacketHandlerFactory = null;
+	private SerializationProvider serializionProvider = null;
 
 	public XMPPTransportFactory() {
 	}
@@ -27,6 +29,8 @@ public class XMPPTransportFactory implements TransportFactory {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
 			this.client = new XMPPClient(confLoader.loadConfiguration());
+			setDefaultPacketHandlerFactory(defaultPacketHandlerFactory);
+			setSerializationProvider(serializionProvider);
 			this.client.startup();
 		} catch (ConfigurationException e) {
 			throw new TransportException("Error loading the configuration: "
@@ -40,15 +44,17 @@ public class XMPPTransportFactory implements TransportFactory {
 	@Override
 	public void setDefaultPacketHandlerFactory(
 			PacketHandlerFactory handlerFactory) throws TransportException {
-		if (client == null)
-			throw new TransportException("Client has not been initialized!");
-		client.setDefaultPacketHandlerFactory(handlerFactory);
+		this.defaultPacketHandlerFactory = handlerFactory;
+		if (client != null)
+			client.setDefaultPacketHandlerFactory(handlerFactory);
 	}
 
 	@Override
 	public void setSerializationProvider(SerializationProvider provider)
 			throws TransportException {
-		client.setDefaultSerializationProvider(provider);
+		this.serializionProvider = provider;
+		if (client != null)
+			client.setDefaultSerializationProvider(provider);
 	}
 
 	@Override
