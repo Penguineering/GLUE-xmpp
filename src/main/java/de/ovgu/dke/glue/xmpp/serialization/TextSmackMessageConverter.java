@@ -42,7 +42,10 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 			int br_idx = body.indexOf('\n');
 			if (br_idx > 0) {
 				id = body.substring(0, br_idx);
-				body = body.substring(br_idx + 1);
+				if (body.length() > br_idx)
+					body = body.substring(br_idx + 1);
+				else
+					body = null;
 			} else {
 				id = body;
 				body = null;
