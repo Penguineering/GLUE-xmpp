@@ -14,8 +14,7 @@ import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
-import de.ovgu.dke.glue.xmpp.serialization.TextThreadSmackPacketConverter;
-import de.ovgu.dke.glue.xmpp.serialization.XMPPThreadSmackPacketConverter;
+import de.ovgu.dke.glue.xmpp.serialization.TextSmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
@@ -40,7 +39,7 @@ public class XMPPTransport implements Transport {
 		this.threads = threads;
 		this.serializers = serializers;
 
-		this.converter = new TextThreadSmackPacketConverter();
+		this.converter = new TextSmackMessageConverter();
 	}
 
 	public final URI getPeer() {
@@ -90,13 +89,7 @@ public class XMPPTransport implements Transport {
 					+ " is not registered on this transport!");
 
 		// create an XMPP message
-		SmackMessageConverter conv = this.converter;
-		if (conv == null) {
-			// be on the safe side and encode thread IDs in the message body
-			conv = new TextThreadSmackPacketConverter();
-			// a converter will be stored by the client upon receipt of a
-			// message
-		}
+		SmackMessageConverter conv = this.getConverter();
 
 		try {
 			final Message msg = conv.toSmack(packet);
@@ -118,31 +111,16 @@ public class XMPPTransport implements Transport {
 
 			// get the converter
 			SmackMessageConverter conv = this.getConverter();
-			// if there is no converter, we try different methods:
-			// first the XMPP threading (XEP-0201),
-			// then thread info in body
-			if (conv == null) {
-				// try the XMPP threading converter first
-				conv = new XMPPThreadSmackPacketConverter();
-				pkt = conv.fromSmack(msg, currentSerializer);
+			pkt = conv.fromSmack(msg, currentSerializer);
 
-				// use the text based threading converter if there was no thread
-				// attached
-				if (pkt.thread_id == null || pkt.thread_id.isEmpty()) {
-					conv = new TextThreadSmackPacketConverter();
-					pkt = conv.fromSmack(msg, currentSerializer);
-				}
-			} else
-				pkt = conv.fromSmack(msg, currentSerializer);
-
-			if (pkt.thread_id == null) {
+			if (pkt.getThreadId() == null) {
 				throw new TransportException("Packet thread ID for "
-						+ pkt.thread_id + " could not be retrieved!");
+						+ pkt.getThreadId() + " could not be retrieved!");
 			} else if (this.getConverter() == null) {
 				// if we are fine here, store the converter
 				this.setConverter(conv);
 			}
-			
+
 			// deserialize the content
 
 			// return the packet

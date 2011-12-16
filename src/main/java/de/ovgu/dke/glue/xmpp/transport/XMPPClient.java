@@ -235,19 +235,19 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 			// TODO check ID consistency
 
-			XMPPPacketThread pt = threads.retrieveThread(pkt.thread_id);
+			XMPPPacketThread pt = threads.retrieveThread(pkt.getThreadId());
 
 			if (pt == null) {
 				logger.debug("Creating new packet thread with ID "
-						+ pkt.thread_id);
+						+ pkt.getThreadId());
 				pt = (XMPPPacketThread) threads.addThread(transport,
-						pkt.thread_id, this.getDefaultPacketHandlerFactory()
+						pkt.getThreadId(), this.getDefaultPacketHandlerFactory()
 								.createPacketHandler());
 			}
 
 			if (pt != null) {
 				// adapt the threads effective JID
-				pt.setEffectiveJID(pkt.sender);
+				pt.setEffectiveJID(pkt.getSender());
 
 				// TODO handle message in thread
 				logger.debug(pt.getTransport().getPeer());

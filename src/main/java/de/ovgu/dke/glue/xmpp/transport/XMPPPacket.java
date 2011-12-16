@@ -2,18 +2,47 @@ package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.jivesoftware.smack.packet.Packet;
 
 import de.ovgu.dke.glue.util.transport.AbstractPacket;
 
+@ThreadSafe
 public class XMPPPacket extends AbstractPacket {
-	public URI sender;
-	public URI receiver;
-	public String thread_id;
-	public Packet xmpp_packet;
+	private final URI sender;
+	private final URI receiver;
+	private final String thread_id;
+	private final Packet xmpp_packet;
 
-	public XMPPPacket(Object payload, Priority priority) {
+	public XMPPPacket(Object payload, Priority priority, URI sender,
+			URI receiver, String thread_id) {
+		this(payload, priority, sender, receiver, thread_id, null);
+	}
+
+	public XMPPPacket(Object payload, Priority priority, URI sender,
+			URI receiver, String thread_id, Packet xmpp_packet) {
 		super(payload, priority);
+		this.sender = sender;
+		this.receiver = receiver;
+		this.thread_id = thread_id;
+		this.xmpp_packet = xmpp_packet;
+	}
+
+	public URI getSender() {
+		return sender;
+	}
+
+	public URI getReceiver() {
+		return receiver;
+	}
+
+	public String getThreadId() {
+		return thread_id;
+	}
+
+	public Packet getXMPPPacket() {
+		return xmpp_packet;
 	}
 
 	@Override
