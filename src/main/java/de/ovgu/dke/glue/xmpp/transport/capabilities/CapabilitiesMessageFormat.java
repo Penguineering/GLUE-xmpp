@@ -4,7 +4,7 @@ import java.util.List;
 
 import de.ovgu.dke.glue.api.transport.TransportException;
 
-public interface CapabilitiesMessageHandler {
+public interface CapabilitiesMessageFormat {
 	/**
 	 * Create the payload for a capabilities message
 	 * 
