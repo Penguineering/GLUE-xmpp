@@ -9,6 +9,7 @@ import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
+import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
 
 public class PacketThreadManager implements ThreadIDGenerator {
 	private final Map<String, XMPPPacketThread> threads;
@@ -41,6 +42,11 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return generator.generateThreadID();
 	}
 
+	@Override
+	public String generateMetaThreadID() throws TransportException {
+		return generator.generateMetaThreadID();
+	}
+
 	/**
 	 * Add a thread with a known (remote) ID
 	 * 
@@ -69,4 +75,14 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return addThread(transport, id, handler);
 	}
 
+	public PacketThread createMetaThread(XMPPTransport transport)
+			throws TransportException {
+		// fixed id for each transport
+		final String id = this.generateMetaThreadID();
+
+		// TODO capabilities packet handler
+		final PacketHandler handler = new CapabilitiesPacketHandler();
+
+		return addThread(transport, id, handler);
+	}
 }

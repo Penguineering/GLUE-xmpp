@@ -22,4 +22,11 @@ public class CountingThreadIDGenerator implements ThreadIDGenerator {
 			return id;
 		}
 	}
+
+	@Override
+	public String generateMetaThreadID() throws TransportException {
+		final String id = local_peer.toASCIIString() + ":meta";
+
+		return id;
+	}
 }
