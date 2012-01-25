@@ -1,20 +1,43 @@
-package de.ovgu.dke.glue.xmpp.transport.capabilities;
+package de.ovgu.dke.glue.xmpp.serialization;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.api.serialization.SerializationException;
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
+import de.ovgu.dke.glue.xmpp.transport.capabilities.SerializationCapability;
 
-public class TextCapabilitiesMessageFormat implements
-		CapabilitiesMessageFormat {
+/**
+ * <p>
+ * Serializer for a capabilities message, which serializes to Text returned as
+ * <code>String</code>.
+ * </p>
+ * 
+ * <p>
+ * The schema is http://dke.ovgu.de/glue/xmpp/Capabilities/text
+ * </p>
+ * 
+ * @author Stefan Haun (stefan.haun@ovgu.de)
+ * 
+ */
+public class TextCapabilitiesSerializer extends CapabilitiesSerializer {
+	@Override
+	public String getFormat() {
+		return SerializationProvider.STRING;
+	}
 
 	@Override
-	public Object renderCapabilitiesMessage(
-			List<SerializationCapability> capabilities)
-			throws TransportException {
-		if (capabilities == null)
-			throw new TransportException("Capabilities list may not be null!");
+	public Object serialize(Object o) throws SerializationException {
+		// check object type
+		if (!(o instanceof List<?>))
+			throw new SerializationException(
+					"Serializer expected list of SerializationCapability, got "
+							+ (o == null ? "null" : o.getClass()
+									.getCanonicalName()) + " instead!");
+
+		@SuppressWarnings("unchecked")
+		final List<SerializationCapability> capabilities = (List<SerializationCapability>) o;
 
 		StringBuffer payload = new StringBuffer("SERIALIZERS ");
 		payload.append(capabilities.size());
@@ -32,13 +55,12 @@ public class TextCapabilitiesMessageFormat implements
 	}
 
 	@Override
-	public List<SerializationCapability> parseSerializationCapabilities(
-			Object payload) throws TransportException {
+	public Object deserialize(Object payload) throws SerializationException {
 		if (payload == null)
 			return Collections.emptyList();
 
 		if (!(payload instanceof String))
-			throw new TransportException("String payload expected!");
+			throw new SerializationException("String payload expected!");
 
 		final String[] lines = ((String) payload).split("\n");
 
@@ -57,7 +79,7 @@ public class TextCapabilitiesMessageFormat implements
 		final String meta_line = lines[c];
 		final String[] meta_fields = meta_line.split(" ");
 		if (meta_fields.length != 2)
-			throw new TransportException(
+			throw new SerializationException(
 					"Invalid format for SERIALIZERS line (line " + c + ")!");
 		// decode number of serializers from the 2nd field
 		final int sercount;
@@ -65,7 +87,7 @@ public class TextCapabilitiesMessageFormat implements
 			String _sercount = meta_fields[1];
 			sercount = Integer.parseInt(_sercount);
 		} catch (NumberFormatException e) {
-			throw new TransportException(
+			throw new SerializationException(
 					"Number format error in number of serializers (line " + c
 							+ "): " + e.getMessage(), e);
 		}
@@ -75,7 +97,7 @@ public class TextCapabilitiesMessageFormat implements
 
 		// check if there is a sufficient number of lines left
 		if (lines.length - 1 < c + sercount)
-			throw new TransportException(
+			throw new SerializationException(
 					"Too few remaining lines for the given number of serializers (line "
 							+ c + ")!");
 
@@ -90,7 +112,7 @@ public class TextCapabilitiesMessageFormat implements
 			final String[] ser_fields = lines[c].split(" ");
 
 			if (ser_fields.length != 2)
-				throw new TransportException(
+				throw new SerializationException(
 						"Format error in serializer line, two fields expected (line"
 								+ i + ")!");
 
