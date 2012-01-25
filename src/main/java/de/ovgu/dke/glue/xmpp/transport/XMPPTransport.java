@@ -8,6 +8,7 @@ import org.jivesoftware.smack.packet.Message;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
+import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
@@ -15,6 +16,9 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.serialization.TextSmackMessageConverter;
+import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesMessageFormat;
+import de.ovgu.dke.glue.xmpp.transport.capabilities.SerializationCapability;
+import de.ovgu.dke.glue.xmpp.transport.capabilities.TextCapabilitiesMessageFormat;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
@@ -79,9 +83,17 @@ public class XMPPTransport implements Transport {
 			threads.removeThread(((XMPPPacketThread) thread).getId());
 	}
 
+	/**
+	 * 
+	 * @param thread
+	 * @param packet
+	 *            Packet with serialized(!) payload
+	 * @throws TransportException
+	 */
 	public void sendPacket(final XMPPPacketThread thread,
 			final XMPPPacket packet) throws TransportException {
-		// check thread
+
+		// check local thread (lt)
 		final XMPPPacketThread lt = threads.retrieveThread(thread.getId());
 
 		if (lt == null || thread.getTransport() != this)
@@ -92,7 +104,7 @@ public class XMPPTransport implements Transport {
 		SmackMessageConverter conv = this.getConverter();
 
 		try {
-			final Message msg = conv.toSmack(packet);
+			final Message msg = conv.toSmack(packet, currentSerializer);
 			client.enqueuePacket(msg);
 		} catch (InterruptedException e) {
 			throw new TransportException("Error sending XMPP packet: "
@@ -111,7 +123,7 @@ public class XMPPTransport implements Transport {
 
 			// get the converter
 			SmackMessageConverter conv = this.getConverter();
-			pkt = conv.fromSmack(msg, currentSerializer);
+			pkt = conv.fromSmack(msg, serializers);
 
 			if (pkt.getThreadId() == null) {
 				throw new TransportException("Packet thread ID for "
@@ -120,8 +132,6 @@ public class XMPPTransport implements Transport {
 				// if we are fine here, store the converter
 				this.setConverter(conv);
 			}
-
-			// deserialize the content
 
 			// return the packet
 			return pkt;
@@ -169,22 +179,26 @@ public class XMPPTransport implements Transport {
 	public boolean checkCapabilities() throws TransportException {
 		// TODO das muss ausgehandelt werden!
 		if (serializers != null) {
+			// capabilities renderer
+			final CapabilitiesMessageFormat cmr = new TextCapabilitiesMessageFormat();
 
-			// our format is String
-			final String format = SerializationProvider.STRING;
+			// serializers message
+			final Object payload = cmr
+					.renderCapabilitiesMessage(SerializationCapability
+							.retrieveSerializationCapabilities(serializers));
 
-			// get the list
-			final List<String> schemas = serializers.getSchemas(format);
-			final String schema = schemas.get(0);
+			// send to peer
+			final XMPPPacketThread meta = (XMPPPacketThread) threads
+					.createMetaThread(this);
+			sendPacket(meta, meta.createPacket(payload, Packet.Priority.HIGH));
 
-			try {
-				currentSerializer = serializers.getSerializer(format, schema);
-				return true;
-			} catch (SerializationException e) {
-				throw new TransportException(
-						"Error obtaining serializer for format " + format
-								+ " and schema " + schema);
-			}
+			// TODO wait for response
+
+			// TODO check matching
+
+			// TODO respond accordingly
+
+			return true;
 		}
 		return false;
 	}
@@ -193,8 +207,24 @@ public class XMPPTransport implements Transport {
 	public Serializer getSerializer() {
 		if (currentSerializer == null)
 			try {
-				checkCapabilities();
+				// our format is String
+				final String format = SerializationProvider.STRING;
+
+				// get the list
+				final List<String> schemas = serializers.getSchemas(format);
+				final String schema = schemas.get(0);
+
+				try {
+					currentSerializer = serializers.getSerializer(format,
+							schema);
+				} catch (SerializationException e) {
+					throw new TransportException(
+							"Error obtaining serializer for format " + format
+									+ " and schema " + schema);
+				}
 			} catch (TransportException e) {
+				// should not happen!
+
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

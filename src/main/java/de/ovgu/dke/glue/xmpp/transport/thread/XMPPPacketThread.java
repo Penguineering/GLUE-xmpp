@@ -67,10 +67,15 @@ public class XMPPPacketThread extends PacketThread {
 	@Override
 	protected void sendSerializedPayload(Object payload,
 			Packet.Priority priority) throws TransportException {
-		final XMPPPacket pkt = new XMPPPacket(payload, priority, transport
-				.getClient().getLocalURI(), effective_jid, this.getId());
+		final XMPPPacket pkt = createPacket(payload, priority);
 
 		transport.sendPacket(this, pkt);
+	}
+
+	public XMPPPacket createPacket(Object payload, Packet.Priority priority)
+			throws TransportException {
+		return new XMPPPacket(payload, priority, transport.getClient()
+				.getLocalURI(), effective_jid, this.getId());
 	}
 
 	@Override
