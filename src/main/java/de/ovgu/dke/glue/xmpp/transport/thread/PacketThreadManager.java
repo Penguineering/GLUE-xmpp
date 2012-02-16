@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.xmpp.serialization.CapabilitiesSerializer;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
 
@@ -53,13 +54,15 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	 * @param transport
 	 * @param id
 	 * @param handler
+	 * @param schema
 	 * @return
 	 * @throws TransportException
 	 */
 	public PacketThread addThread(XMPPTransport transport, String id,
-			PacketHandler handler) throws TransportException {
+			String schema, PacketHandler handler) throws TransportException {
 		// create packet thread
-		XMPPPacketThread pt = new XMPPPacketThread(transport, id, handler);
+		XMPPPacketThread pt = new XMPPPacketThread(transport, id, schema,
+				handler);
 
 		// register packet thread
 		this.registerThread(pt);
@@ -67,12 +70,12 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return pt;
 	}
 
-	public PacketThread createThread(XMPPTransport transport,
+	public PacketThread createThread(XMPPTransport transport, String schema,
 			PacketHandler handler) throws TransportException {
 		// generate id
 		final String id = this.generateThreadID();
 
-		return addThread(transport, id, handler);
+		return addThread(transport, id, schema, handler);
 	}
 
 	public PacketThread createMetaThread(XMPPTransport transport)
@@ -83,6 +86,6 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		// TODO capabilities packet handler
 		final PacketHandler handler = new CapabilitiesPacketHandler();
 
-		return addThread(transport, id, handler);
+		return addThread(transport, id, CapabilitiesSerializer.SCHEMA, handler);
 	}
 }

@@ -27,7 +27,7 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 
 		// second line: schema
 		payload.append("\n");
-		payload.append(serializer == null ? "\n" : serializer.getSchema());
+		payload.append(pkt.getSchema() == null ? "\n" : pkt.getSchema());
 
 		// next lines: payload
 		if (pkt.getPayload() != null) {
@@ -109,7 +109,7 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 		XMPPPacket pkt = new XMPPPacket(payload,
 				de.ovgu.dke.glue.api.transport.Packet.Priority.DEFERRABLE,
 				URI.create(URI_PREFIX + msg.getFrom()), URI.create(URI_PREFIX
-						+ msg.getTo()), id, msg);
+						+ msg.getTo()), id, schema, msg);
 
 		return pkt;
 	}

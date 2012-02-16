@@ -59,22 +59,22 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public PacketThread createThread(PacketHandler handler)
-			throws TransportException {
+	public PacketThread createThread(final String schema,
+			final PacketHandler handler) throws TransportException {
 		try {
 			PacketHandler hnd = handler;
 			if (hnd == null) {
 				PacketHandlerFactory factory = client
 						.getDefaultPacketHandlerFactory();
 				if (factory != null)
-					hnd = factory.createPacketHandler();
+					hnd = factory.createPacketHandler(schema);
 			}
 
 			if (hnd == null)
 				throw new TransportException(
 						"Invalid value for packet handler: null!");
 
-			return threads.createThread(this, hnd);
+			return threads.createThread(this, schema, hnd);
 		} catch (InstantiationException e) {
 			throw new TransportException(
 					"Could not instantiate packet handler: " + e.getMessage(),
@@ -227,15 +227,11 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public Serializer getSerializer() {
+	public Serializer getSerializer(final String schema) {
 		if (currentSerializer == null)
 			try {
 				// our format is String
 				final String format = SerializationProvider.STRING;
-
-				// get the list
-				final List<String> schemas = serializers.getSchemas(format);
-				final String schema = schemas.get(0);
 
 				try {
 					currentSerializer = serializers.getSerializer(format,
@@ -248,7 +244,7 @@ public class XMPPTransport implements Transport {
 			} catch (TransportException e) {
 				// should not happen!
 
-				// TODO Auto-generated catch block
+				// TODO use reporting
 				e.printStackTrace();
 			}
 

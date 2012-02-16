@@ -25,7 +25,9 @@ public class XMPPPacketThread extends PacketThread {
 	private URI effective_jid;
 
 	public XMPPPacketThread(XMPPTransport transport, String id,
-			PacketHandler handler) throws TransportException {
+			final String schema, PacketHandler handler)
+			throws TransportException {
+		super(schema);
 		this.transport = transport;
 		this.id = id;
 
@@ -35,6 +37,14 @@ public class XMPPPacketThread extends PacketThread {
 	}
 
 	public String getId() {
+		return id;
+	}
+
+	/**
+	 * Print the thread id as string representation.
+	 */
+	@Override
+	public String toString() {
 		return id;
 	}
 
@@ -75,7 +85,8 @@ public class XMPPPacketThread extends PacketThread {
 	public XMPPPacket createPacket(Object payload, Packet.Priority priority)
 			throws TransportException {
 		return new XMPPPacket(payload, priority, transport.getClient()
-				.getLocalURI(), effective_jid, this.getId());
+				.getLocalURI(), effective_jid, this.getId(),
+				this.getSerializationSchema());
 	}
 
 	@Override

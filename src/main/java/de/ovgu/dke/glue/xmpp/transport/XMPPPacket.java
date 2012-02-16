@@ -13,19 +13,21 @@ public class XMPPPacket extends AbstractPacket {
 	private final URI sender;
 	private final URI receiver;
 	private final String thread_id;
+	private final String schema;
 	private final Packet xmpp_packet;
 
 	public XMPPPacket(Object payload, Priority priority, URI sender,
-			URI receiver, String thread_id) {
-		this(payload, priority, sender, receiver, thread_id, null);
+			URI receiver, String thread_id, String schema) {
+		this(payload, priority, sender, receiver, thread_id, schema, null);
 	}
 
 	public XMPPPacket(Object payload, Priority priority, URI sender,
-			URI receiver, String thread_id, Packet xmpp_packet) {
+			URI receiver, String thread_id, String schema, Packet xmpp_packet) {
 		super(payload, priority);
 		this.sender = sender;
 		this.receiver = receiver;
 		this.thread_id = thread_id;
+		this.schema = schema;
 		this.xmpp_packet = xmpp_packet;
 	}
 
@@ -39,6 +41,10 @@ public class XMPPPacket extends AbstractPacket {
 
 	public String getThreadId() {
 		return thread_id;
+	}
+
+	public String getSchema() {
+		return schema;
 	}
 
 	public Packet getXMPPPacket() {

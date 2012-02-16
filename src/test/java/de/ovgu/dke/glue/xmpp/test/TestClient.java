@@ -18,8 +18,8 @@ public class TestClient {
 		// initialize and register transport factory
 		TransportRegistry.getInstance().loadTransportFactory(
 				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-				new EchoPacketHandlerFactory(), null, TransportRegistry.AS_DEFAULT,
-				TransportRegistry.DEFAULT_KEY);
+				new EchoPacketHandlerFactory(), null,
+				TransportRegistry.AS_DEFAULT, TransportRegistry.DEFAULT_KEY);
 
 		// get a transport
 		final Transport xmpp = TransportRegistry.getDefaultTransportFactory()
@@ -27,8 +27,8 @@ public class TestClient {
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		// create a packet thread
-		final PacketThread thread = xmpp
-				.createThread(PacketThread.DEFAULT_HANDLER);
+		final PacketThread thread = xmpp.createThread(
+				PacketThread.NO_SERALIZATION, PacketThread.DEFAULT_HANDLER);
 
 		// send something
 		thread.send("Hallo Welt!", Packet.Priority.DEFAULT);
@@ -49,7 +49,7 @@ class EchoPacketHandlerFactory implements PacketHandlerFactory {
 	private static PacketHandler echoHandler = null;
 
 	@Override
-	public synchronized PacketHandler createPacketHandler()
+	public synchronized PacketHandler createPacketHandler(final String schema)
 			throws InstantiationException {
 		if (echoHandler == null)
 			echoHandler = new EchoHandler();
