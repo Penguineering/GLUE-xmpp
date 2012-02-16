@@ -1,6 +1,7 @@
 package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
+import java.util.Properties;
 
 import org.apache.commons.configuration.ConfigurationException;
 
@@ -25,7 +26,7 @@ public class XMPPTransportFactory implements TransportFactory {
 	}
 
 	@Override
-	public void init() throws TransportException {
+	public void init(final Properties config) throws TransportException {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
 			this.client = new XMPPClient(confLoader.loadConfiguration());

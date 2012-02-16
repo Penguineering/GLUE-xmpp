@@ -17,7 +17,7 @@ public class TestClient {
 
 		// initialize and register transport factory
 		TransportRegistry.getInstance().loadTransportFactory(
-				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
+				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",  null,
 				new EchoPacketHandlerFactory(), null,
 				TransportRegistry.AS_DEFAULT, TransportRegistry.DEFAULT_KEY);
 
