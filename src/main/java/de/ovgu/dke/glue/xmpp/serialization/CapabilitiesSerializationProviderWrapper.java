@@ -9,8 +9,7 @@ import de.ovgu.dke.glue.api.serialization.Serializer;
 /**
  * A wrapper for the capabilities serializer: Only returns formats/schemas for
  * the wrapped provider, i.e. the capabilities serializer will not be reported
- * in the capabilities. However, it has precedence if the format/schema is
- * matches.
+ * in the capabilities. However, it has precedence if the format/schema matches.
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  * 

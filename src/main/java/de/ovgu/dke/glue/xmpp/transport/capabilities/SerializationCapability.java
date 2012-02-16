@@ -8,6 +8,13 @@ import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 
 import net.jcip.annotations.Immutable;
 
+
+/**
+ * A serialization capability entry consisting of format and schema.
+ * 
+ * @author Stefan Haun (stefan.haun@ovgu.de)
+ *
+ */
 @Immutable
 public class SerializationCapability {
 	private final String format;

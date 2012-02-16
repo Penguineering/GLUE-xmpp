@@ -9,18 +9,12 @@ import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.SerializationCapability;
 
 /**
- * <p>
  * Serializer for a capabilities message, which serializes to Text returned as
  * <code>String</code>.
- * </p>
- * 
- * <p>
- * The schema is http://dke.ovgu.de/glue/xmpp/Capabilities/text
- * </p>
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
- * 
  */
+// TODO use common methods with mocca serialization
 public class TextCapabilitiesSerializer extends CapabilitiesSerializer {
 	@Override
 	public String getFormat() {

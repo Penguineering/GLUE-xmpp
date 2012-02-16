@@ -7,6 +7,11 @@ import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
 
+/**
+ * Conversion between GLUE and Smack messages.
+ * 
+ * @author Stefan Haun (stefan.haun@ovgu.de)
+ */
 public interface SmackMessageConverter {
 	/**
 	 * Create a smack packet from an XMPP packet with serialized payload.

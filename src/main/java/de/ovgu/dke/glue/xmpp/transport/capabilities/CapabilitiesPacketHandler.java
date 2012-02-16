@@ -18,7 +18,7 @@ public class CapabilitiesPacketHandler implements PacketHandler, Reporter {
 
 	@Override
 	public void handle(PacketThread packetThread, Packet packet) {
-		// TODO check packet thread ID (API call missing!)
+		// TODO check packet thread ID (API call missing!)		
 
 		// check payload
 		final Object _payload = packet.getPayload();
