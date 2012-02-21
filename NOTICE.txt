@@ -1,0 +1,77 @@
+GLUE XMPP library
+Copyright 2012 Stefan Haun, Thomas Low, Sebastian Stober, Andreas Nürnberger
+	Data and Knowledge Engineering Group, 
+ 	Faculty of Computer Science,
+ 	Otto-von-Guericke University,
+ 	Magdeburg, Germany
+
+
+The following libraries are included:
+
+GLUE Core library
+Copyright 2012 Stefan Haun, Thomas Low, Sebastian Stober, Andreas Nürnberger
+	Data and Knowledge Engineering Group, 
+ 	Faculty of Computer Science,
+ 	Otto-von-Guericke University,
+ 	Magdeburg, Germany
+
+
+
+GLUE Utilities library
+Copyright 2012 Stefan Haun, Thomas Low, Sebastian Stober, Andreas Nürnberger
+	Data and Knowledge Engineering Group, 
+ 	Faculty of Computer Science,
+ 	Otto-von-Guericke University,
+ 	Magdeburg, Germany
+
+
+
+Apache Commons Logging
+Copyright 2003-2007 The Apache Software Foundation
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+
+
+Apache Commons Configuration
+Copyright 2001-2012 The Apache Software Foundation
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+
+
+net.jcip.annotations
+
+This software is copyright (c) 2005 Brian Goetz and Tim Peierls and is released
+under the Creative Commons Attribution License 
+(http://creativecommons.org/licenses/by/2.5). The official home for this 
+software is http://www.jcip.net. Any republication or derived work distributed 
+in source code form must include the copyright and license notice.
+
+
+
+Smack XMPP Libaray
+     Use of thie Smack source code is governed by the Apache License:
+
+     Copyright 2002-2008 Jive Software.
+
+     All rights reserved. Licensed under the Apache License, 
+     Version 2.0 (the "License"); you may not use this file except in 
+     compliance with the License. You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+     
+
+    Smack contains icons and images licensed from INCORS GmbH. You are not 
+    licensed to use these icons outside of Smack. 
+    
+    Third-party source code is licensed as noted in their source files.
+ 
