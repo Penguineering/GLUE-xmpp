@@ -107,7 +107,7 @@ public class XMPPPacketThread extends PacketThread {
 			throws TransportException {
 		return new XMPPPacket(payload, priority, transport.getClient()
 				.getLocalURI(), effective_jid, this.getId(),
-				this.getSerializationSchema());
+				this.getConnectionSchema());
 	}
 
 	@Override
