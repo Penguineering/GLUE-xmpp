@@ -50,7 +50,7 @@ public class TestClient {
 
 		// create a connection
 		final Connection con = xmpp
-				.getConnection(Connection.NO_SERALIZATION);
+				.getConnection("http://dke.ovgu.de/glue/xmpp/test");
 
 		// create a packet thread
 		final PacketThread thread = con
