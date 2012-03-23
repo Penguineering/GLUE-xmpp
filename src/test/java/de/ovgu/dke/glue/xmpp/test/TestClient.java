@@ -24,6 +24,7 @@ package de.ovgu.dke.glue.xmpp.test;
 import java.io.IOException;
 import java.net.URI;
 
+import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
@@ -38,7 +39,7 @@ public class TestClient {
 
 		// initialize and register transport factory
 		TransportRegistry.getInstance().loadTransportFactory(
-				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",  null,
+				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory", null,
 				new EchoPacketHandlerFactory(), null,
 				TransportRegistry.AS_DEFAULT, TransportRegistry.DEFAULT_KEY);
 
@@ -47,9 +48,13 @@ public class TestClient {
 				.createTransport(
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
+		// create a connection
+		final Connection con = xmpp
+				.getConnection(Connection.NO_SERALIZATION);
+
 		// create a packet thread
-		final PacketThread thread = xmpp.createThread(
-				PacketThread.NO_SERALIZATION, PacketThread.DEFAULT_HANDLER);
+		final PacketThread thread = con
+				.createThread(PacketThread.DEFAULT_HANDLER);
 
 		// send something
 		thread.send("Hallo Welt!", Packet.Priority.DEFAULT);

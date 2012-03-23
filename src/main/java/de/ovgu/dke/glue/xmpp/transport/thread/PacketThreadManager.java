@@ -30,6 +30,7 @@ import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.serialization.CapabilitiesSerializer;
+import de.ovgu.dke.glue.xmpp.transport.XMPPConn;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
 
@@ -79,11 +80,10 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	 * @return
 	 * @throws TransportException
 	 */
-	public PacketThread addThread(XMPPTransport transport, String id,
-			String schema, PacketHandler handler) throws TransportException {
+	public PacketThread addThread(XMPPConn connection, String id,
+			PacketHandler handler) throws TransportException {
 		// create packet thread
-		XMPPPacketThread pt = new XMPPPacketThread(transport, id, schema,
-				handler);
+		XMPPPacketThread pt = new XMPPPacketThread(connection, id, handler);
 
 		// register packet thread
 		this.registerThread(pt);
@@ -91,12 +91,12 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return pt;
 	}
 
-	public PacketThread createThread(XMPPTransport transport, String schema,
-			PacketHandler handler) throws TransportException {
+	public PacketThread createThread(XMPPConn connection, PacketHandler handler)
+			throws TransportException {
 		// generate id
 		final String id = this.generateThreadID();
 
-		return addThread(transport, id, schema, handler);
+		return addThread(connection, id, handler);
 	}
 
 	public PacketThread createMetaThread(XMPPTransport transport)
@@ -107,6 +107,9 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		// TODO capabilities packet handler
 		final PacketHandler handler = new CapabilitiesPacketHandler();
 
-		return addThread(transport, id, CapabilitiesSerializer.SCHEMA, handler);
+		final XMPPConn con = (XMPPConn)transport
+				.getConnection(CapabilitiesSerializer.SCHEMA);
+
+		return addThread(con, id, handler);
 	}
 }

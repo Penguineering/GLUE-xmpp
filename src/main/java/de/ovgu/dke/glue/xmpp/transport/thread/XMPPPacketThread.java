@@ -21,40 +21,29 @@
  */
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
-import java.net.URI;
-
-import de.ovgu.dke.glue.api.transport.Packet;
+import de.ovgu.dke.glue.api.transport.Connection;
+import de.ovgu.dke.glue.api.transport.Packet.Priority;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
-import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
+import de.ovgu.dke.glue.xmpp.transport.XMPPConn;
 
 //TODO synchronization
-public class XMPPPacketThread extends PacketThread {
-	private final XMPPTransport transport;
+public class XMPPPacketThread implements PacketThread {
+	private final XMPPConn connection;
 
 	private final String id;
 
 	private PacketHandler handler;
 
-	/**
-	 * This reflects the last known peer's JID, including a resource. The id
-	 * changes depending on the last received message and is the target for
-	 * subsequent replies.
-	 */
-	private URI effective_jid;
 
-	public XMPPPacketThread(XMPPTransport transport, String id,
-			final String schema, PacketHandler handler)
+	public XMPPPacketThread(XMPPConn connection, String id,
+			PacketHandler handler)
 			throws TransportException {
-		super(schema);
-		this.transport = transport;
+		this.connection = connection;
 		this.id = id;
 
 		this.handler = handler;
-
-		this.effective_jid = transport.getPeer();
 	}
 
 	public String getId() {
@@ -69,11 +58,6 @@ public class XMPPPacketThread extends PacketThread {
 		return id;
 	}
 
-	@Override
-	public XMPPTransport getTransport() {
-		return transport;
-	}
-
 	public PacketHandler getHandler() {
 		return handler;
 	}
@@ -82,32 +66,20 @@ public class XMPPPacketThread extends PacketThread {
 		this.handler = handler;
 	}
 
-	public URI getEffectiveJID() {
-		return effective_jid;
-	}
-
-	public void setEffectiveJID(URI jid) {
-		this.effective_jid = jid;
-	}
-
 	@Override
 	public void dispose() {
-		transport.disposeThread(this);
+		connection.disposeThread(this);
 	}
 
 	@Override
-	protected void sendSerializedPayload(Object payload,
-			Packet.Priority priority) throws TransportException {
-		final XMPPPacket pkt = createPacket(payload, priority);
-
-		transport.sendPacket(this, pkt);
+	public void send(Object payload, Priority priority)
+			throws TransportException {
+		connection.send(this, payload, priority);
 	}
 
-	public XMPPPacket createPacket(Object payload, Packet.Priority priority)
-			throws TransportException {
-		return new XMPPPacket(payload, priority, transport.getClient()
-				.getLocalURI(), effective_jid, this.getId(),
-				this.getConnectionSchema());
+	@Override
+	public Connection getConnection() {
+		return connection;
 	}
 
 	@Override
@@ -115,8 +87,6 @@ public class XMPPPacketThread extends PacketThread {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result
-				+ ((transport == null) ? 0 : transport.hashCode());
 		return result;
 	}
 
@@ -134,16 +104,6 @@ public class XMPPPacketThread extends PacketThread {
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (transport == null) {
-			if (other.transport != null)
-				return false;
-		} else if (!transport.equals(other.transport))
-			return false;
 		return true;
-	}
-
-	@Override
-	public URI getPeer() {
-		return effective_jid;
 	}
 }

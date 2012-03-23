@@ -261,17 +261,22 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 			if (pt == null) {
 				logger.debug("Creating new packet thread with ID "
 						+ pkt.getThreadId());
-				pt = (XMPPPacketThread) threads.addThread(transport,
-						pkt.getThreadId(), pkt.getSchema(), this.getDefaultPacketHandlerFactory()
-								.createPacketHandler(pkt.getSchema()));
+				final XMPPConn con = (XMPPConn) transport.getConnection(pkt
+						.getSchema());
+
+				pt = (XMPPPacketThread) threads.addThread(con, pkt
+						.getThreadId(), this.getDefaultPacketHandlerFactory()
+						.createPacketHandler(pkt.getSchema()));
 			}
 
 			if (pt != null) {
+				final XMPPConn con = (XMPPConn) pt.getConnection();
+
 				// adapt the threads effective JID
-				pt.setEffectiveJID(pkt.getSender());
+				con.setEffectiveJID(pkt.getSender());
 
 				// TODO handle message in thread
-				logger.debug(pt.getTransport().getPeer());
+				logger.debug(con.getPeer());
 				logger.debug("Payload:\n" + pkt.getPayload());
 
 				// TODO call via thread

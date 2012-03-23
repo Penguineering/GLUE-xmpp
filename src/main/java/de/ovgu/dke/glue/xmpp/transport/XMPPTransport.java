@@ -29,6 +29,7 @@ import org.jivesoftware.smack.packet.Message;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
+import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
@@ -80,7 +81,11 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public PacketThread createThread(final String schema,
+	public Connection getConnection(String schema) throws TransportException {
+		return new XMPPConn(schema, this);
+	}
+
+	public PacketThread createThread(final XMPPConn con,
 			final PacketHandler handler) throws TransportException {
 		try {
 			PacketHandler hnd = handler;
@@ -88,14 +93,15 @@ public class XMPPTransport implements Transport {
 				PacketHandlerFactory factory = client
 						.getDefaultPacketHandlerFactory();
 				if (factory != null)
-					hnd = factory.createPacketHandler(schema);
+					hnd = factory
+							.createPacketHandler(con.getConnectionSchema());
 			}
 
 			if (hnd == null)
 				throw new TransportException(
 						"Invalid value for packet handler: null!");
 
-			return threads.createThread(this, schema, hnd);
+			return threads.createThread(con, hnd);
 		} catch (InstantiationException e) {
 			throw new TransportException(
 					"Could not instantiate packet handler: " + e.getMessage(),
@@ -121,7 +127,7 @@ public class XMPPTransport implements Transport {
 		// check local thread (lt)
 		final XMPPPacketThread lt = threads.retrieveThread(thread.getId());
 
-		if (lt == null || thread.getTransport() != this)
+		if (lt == null || thread.getConnection().getTransport() != this)
 			throw new TransportException("Packet thread " + thread.getId()
 					+ " is not registered on this transport!");
 
@@ -201,53 +207,6 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public boolean checkCapabilities() throws TransportException {
-		// TODO das muss ausgehandelt werden!
-		if (serializers != null) {
-			try {
-				final Serializer cap_ser = serializers.getSerializer(
-						SerializationProvider.STRING,
-						CapabilitiesSerializer.SCHEMA);
-
-				final List<SerializationCapability> caps = SerializationCapability
-						.retrieveSerializationCapabilities(serializers);
-
-				// serializers message
-				final Object payload = cap_ser.serialize(caps);
-
-				// send to peer
-				final XMPPPacketThread meta = (XMPPPacketThread) threads
-						.createMetaThread(this);
-
-				// create an XMPP message
-				SmackMessageConverter conv = this.getConverter();
-
-				final Message msg = conv.toSmack(
-						meta.createPacket(payload, Packet.Priority.HIGH),
-						cap_ser);
-				client.enqueuePacket(msg);
-
-				// TODO wait for response
-
-				// TODO check matching
-
-				// TODO respond accordingly
-
-				return true;
-			} catch (InterruptedException e) {
-				throw new TransportException(
-						"Error sending XMPP capabilities packet: "
-								+ e.getMessage(), e);
-			} catch (SerializationException e) {
-				throw new TransportException(
-						"Error converting XMPP capabilities packet: "
-								+ e.getMessage(), e);
-			}
-		}
-		return false;
-	}
-
-	@Override
 	public Serializer getSerializer(final String schema) {
 		if (currentSerializer == null)
 			try {
@@ -271,4 +230,54 @@ public class XMPPTransport implements Transport {
 
 		return currentSerializer;
 	}
+	
+	public boolean checkCapabilities(final String schema) throws TransportException {
+		// TODO das muss ausgehandelt werden!
+		if (serializers != null) {
+			try {
+				final Serializer cap_ser = serializers.getSerializer(
+						SerializationProvider.STRING,
+						CapabilitiesSerializer.SCHEMA);
+
+				final List<SerializationCapability> caps = SerializationCapability
+						.retrieveSerializationCapabilities(serializers);
+
+				// serializers message
+				final Object payload = cap_ser.serialize(caps);
+
+				// send to peer
+				final XMPPPacketThread meta = (XMPPPacketThread) threads
+						.createMetaThread(this);
+
+				// create an XMPP message
+				SmackMessageConverter conv = this.getConverter();
+
+				XMPPConn con = (XMPPConn) getConnection(CapabilitiesSerializer.SCHEMA);
+
+				final Message msg = conv.toSmack(
+						con.createPacket(meta, payload, Packet.Priority.HIGH),
+						cap_ser);
+				client.enqueuePacket(msg);
+
+				// TODO wait for response
+
+				// TODO check matching
+
+				// TODO respond accordingly
+
+				return true;
+
+			} catch (InterruptedException e) {
+				throw new TransportException(
+						"Error sending XMPP capabilities packet: "
+								+ e.getMessage(), e);
+			} catch (SerializationException e) {
+				throw new TransportException(
+						"Error converting XMPP capabilities packet: "
+								+ e.getMessage(), e);
+			}
+		}
+		return false;
+	}
+
 }
