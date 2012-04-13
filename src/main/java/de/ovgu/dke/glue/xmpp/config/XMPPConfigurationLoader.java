@@ -21,6 +21,8 @@
  */
 package de.ovgu.dke.glue.xmpp.config;
 
+import java.util.Properties;
+
 import org.apache.commons.configuration.ConfigurationException;
 
 /**
@@ -29,5 +31,5 @@ import org.apache.commons.configuration.ConfigurationException;
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
 public interface XMPPConfigurationLoader {
-	public XMPPConfiguration loadConfiguration() throws ConfigurationException;
+	public XMPPConfiguration loadConfiguration(final Properties env) throws ConfigurationException;
 }

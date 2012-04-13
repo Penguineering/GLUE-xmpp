@@ -50,7 +50,7 @@ public class XMPPTransportFactory implements TransportFactory {
 	public void init(final Properties config) throws TransportException {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
-			this.client = new XMPPClient(confLoader.loadConfiguration());
+			this.client = new XMPPClient(confLoader.loadConfiguration(config));
 			setDefaultPacketHandlerFactory(defaultPacketHandlerFactory);
 			setSerializationProvider(serializionProvider);
 			this.client.startup();
