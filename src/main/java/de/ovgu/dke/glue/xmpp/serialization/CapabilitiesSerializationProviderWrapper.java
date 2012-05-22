@@ -66,7 +66,7 @@ public class CapabilitiesSerializationProviderWrapper implements
 		} catch (SerializationException e) {
 			// TODO how to determine whether the serializer is just not
 			// avaiblable?
-			ser = wrappee.getSerializer(format, schema);
+			ser = wrappee == null ? null : wrappee.getSerializer(format, schema);
 		}
 
 		return ser;
