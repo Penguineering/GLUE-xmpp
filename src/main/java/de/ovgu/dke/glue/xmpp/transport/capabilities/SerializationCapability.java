@@ -25,16 +25,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import de.ovgu.dke.glue.api.serialization.SerializationProvider;
-
 import net.jcip.annotations.Immutable;
-
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
+import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 
 /**
  * A serialization capability entry consisting of format and schema.
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
- *
+ * 
  */
 @Immutable
 public class SerializationCapability {
@@ -54,7 +53,7 @@ public class SerializationCapability {
 	public String getSchema() {
 		return schema;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -75,18 +74,18 @@ public class SerializationCapability {
 		} else if (!schema.equals(other.schema))
 			return false;
 		return true;
-	}	
+	}
 
-	public static List<SerializationCapability> retrieveSerializationCapabilities(
-			final SerializationProvider serializers) {
-		if (serializers == null)
-			return Collections.emptyList();
-
+	public static List<SerializationCapability> retrieveSerializationCapabilities() {
 		final List<SerializationCapability> result = new ArrayList<SerializationCapability>();
 
-		for (final String format : serializers.availableFormats())
-			for (final String schema : serializers.getSchemas(format))
+		for (final String schema : SchemaRegistry.getInstance()
+				.getAvailableSchemas()) {
+			final SerializationProvider prov = SchemaRegistry.getInstance()
+					.getSerializationProvider(schema);
+			for (final String format : prov.availableFormats())
 				result.add(new SerializationCapability(format, schema));
+		}
 
 		return result;
 	}

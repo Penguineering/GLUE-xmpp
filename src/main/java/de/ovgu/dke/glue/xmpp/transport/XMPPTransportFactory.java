@@ -27,8 +27,6 @@ import java.util.Properties;
 import org.apache.commons.configuration.ConfigurationException;
 
 import de.ovgu.dke.glue.api.reporting.ReportListener;
-import de.ovgu.dke.glue.api.serialization.SerializationProvider;
-import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
@@ -40,8 +38,6 @@ public class XMPPTransportFactory implements TransportFactory {
 	public static final String DEFAULT_REGISTRY_KEY = "xmpp";
 
 	private XMPPClient client;
-	private PacketHandlerFactory defaultPacketHandlerFactory = null;
-	private SerializationProvider serializionProvider = null;
 
 	public XMPPTransportFactory() {
 	}
@@ -51,8 +47,6 @@ public class XMPPTransportFactory implements TransportFactory {
 		try {
 			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
 			this.client = new XMPPClient(confLoader.loadConfiguration(config));
-			setDefaultPacketHandlerFactory(defaultPacketHandlerFactory);
-			setSerializationProvider(serializionProvider);
 			this.client.startup();
 		} catch (ConfigurationException e) {
 			throw new TransportException("Error loading the configuration: "
@@ -61,22 +55,6 @@ public class XMPPTransportFactory implements TransportFactory {
 			throw new TransportException("Error during client initialization: "
 					+ e.getMessage(), e);
 		}
-	}
-
-	@Override
-	public void setDefaultPacketHandlerFactory(
-			PacketHandlerFactory handlerFactory) throws TransportException {
-		this.defaultPacketHandlerFactory = handlerFactory;
-		if (client != null)
-			client.setDefaultPacketHandlerFactory(handlerFactory);
-	}
-
-	@Override
-	public void setSerializationProvider(SerializationProvider provider)
-			throws TransportException {
-		this.serializionProvider = provider;
-		if (client != null)
-			client.setDefaultSerializationProvider(provider);
 	}
 
 	@Override

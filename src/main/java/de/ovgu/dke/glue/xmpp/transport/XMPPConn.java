@@ -2,6 +2,7 @@ package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
 
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
@@ -78,6 +79,12 @@ public class XMPPConn extends Connection {
 	@Override
 	public boolean checkCapabilities() throws TransportException {
 		return transport.checkCapabilities(getConnectionSchema());
+	}
+
+	@Override
+	public String getSerializationFormat() {
+		// TODO later: make this according to client capabilities
+		return SerializationProvider.STRING;
 	}
 
 }

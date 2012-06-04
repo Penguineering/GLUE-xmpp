@@ -60,6 +60,6 @@ public interface SmackMessageConverter {
 	 * @throws SerializationException
 	 *             If de-serialization fails.
 	 */
-	public XMPPPacket fromSmack(final Message msg, SerializationProvider provider)
+	public XMPPPacket fromSmack(final Message msg)
 			throws SerializationException;
 }

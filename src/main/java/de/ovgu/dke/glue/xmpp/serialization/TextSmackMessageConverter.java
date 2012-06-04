@@ -28,6 +28,7 @@ import org.jivesoftware.smack.packet.Message;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
 import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
+import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
 
 public class TextSmackMessageConverter implements SmackMessageConverter {
@@ -62,8 +63,7 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 	}
 
 	@Override
-	public XMPPPacket fromSmack(Message msg, SerializationProvider provider)
-			throws SerializationException {
+	public XMPPPacket fromSmack(Message msg) throws SerializationException {
 		String body = msg.getBody();
 		String id = null;
 		String schema = null;
@@ -107,13 +107,15 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 		// retrieve the serializer
 		Serializer serializer = null;
 		if (schema != null) {
+			SerializationProvider provider = SchemaRegistry.getInstance()
+					.getSerializationProvider(schema);
+
 			if (provider == null)
 				throw new SerializationException(
 						"No serialization provider available to resolve schema \""
 								+ schema + "\"!");
 
-			serializer = provider.getSerializer(SerializationProvider.STRING,
-					schema);
+			serializer = provider.getSerializer(SerializationProvider.STRING);
 			if (serializer == null)
 				throw new SerializationException(
 						"Cannot find serializer for schema \"" + schema

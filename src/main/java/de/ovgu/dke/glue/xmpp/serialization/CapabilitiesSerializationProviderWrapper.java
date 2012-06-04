@@ -53,20 +53,15 @@ public class CapabilitiesSerializationProviderWrapper implements
 	}
 
 	@Override
-	public List<String> getSchemas(String format) {
-		return wrappee.getSchemas(format);
-	}
-
-	@Override
-	public Serializer getSerializer(String format, String schema)
+	public Serializer getSerializer(String format)
 			throws SerializationException {
 		Serializer ser;
 		try {
-			ser = cap.getSerializer(format, schema);
+			ser = cap.getSerializer(format);
 		} catch (SerializationException e) {
 			// TODO how to determine whether the serializer is just not
 			// avaiblable?
-			ser = wrappee == null ? null : wrappee.getSerializer(format, schema);
+			ser = wrappee == null ? null : wrappee.getSerializer(format);
 		}
 
 		return ser;

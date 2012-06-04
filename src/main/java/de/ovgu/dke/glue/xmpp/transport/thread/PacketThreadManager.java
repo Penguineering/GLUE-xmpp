@@ -110,6 +110,7 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		final XMPPConn con = (XMPPConn)transport
 				.getConnection(CapabilitiesSerializer.SCHEMA);
 
+		// TODO this can be done via schema registry
 		return addThread(con, id, handler);
 	}
 }
