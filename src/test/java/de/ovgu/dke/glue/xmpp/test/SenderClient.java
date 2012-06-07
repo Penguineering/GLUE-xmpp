@@ -29,7 +29,7 @@ public class SenderClient implements Runnable {
 			TransportRegistry.getInstance().loadTransportFactory(
 					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
 					prop, TransportRegistry.AS_DEFAULT,
-					TransportRegistry.DEFAULT_KEY);
+					"SENDER");
 
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
@@ -40,8 +40,7 @@ public class SenderClient implements Runnable {
 									.valueOf(SerializationProvider.STRING))));
 
 			// get a transport
-			final Transport xmpp = TransportRegistry
-					.getDefaultTransportFactory().createTransport(
+			final Transport xmpp = TransportRegistry.getInstance().getTransportFactory("SENDER").createTransport(
 							URI.create("xmpp:peer2@jabber.org"));
 
 			// create a connection
@@ -55,21 +54,14 @@ public class SenderClient implements Runnable {
 			// send something
 			thread.send("Hallo Welt!", Packet.Priority.DEFAULT);
 
-			while (true)
-				Thread.sleep(10000);
-
-			// // finish thread
+			// finish thread
 			// thread.dispose();
-			//
-			// // dispose the transport factory
-			// TransportRegistry.getInstance().disposeAll();
-
 		} catch (TransportException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// } catch (InterruptedException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
 		}
 
 	}

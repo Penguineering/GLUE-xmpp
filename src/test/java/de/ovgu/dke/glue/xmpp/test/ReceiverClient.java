@@ -17,6 +17,8 @@ import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
 public class ReceiverClient implements Runnable {
 
+	public boolean received = false;
+
 	@Override
 	public void run() {
 		// initialize and register transport factory
@@ -27,34 +29,28 @@ public class ReceiverClient implements Runnable {
 
 			TransportRegistry.getInstance().loadTransportFactory(
 					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.AS_DEFAULT,
-					TransportRegistry.DEFAULT_KEY);
+					prop, TransportRegistry.AS_DEFAULT, "RECEIVER");
 
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
 					SchemaRecord.valueOf(
 							"http://dke.ovgu.de/glue/xmpp/test",
 							SingletonPacketHandlerFactory
-									.valueOf(new ConsolePackteHandler()),
+									.valueOf(new ToConsolePacketHandler()),
 							new SingleSerializerProvider(NullSerializer
 									.valueOf(SerializationProvider.STRING))));
-
-			while (true)
-				Thread.sleep(10000);
-
 		} catch (TransportException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	class ConsolePackteHandler implements PacketHandler {
+	class ToConsolePacketHandler implements PacketHandler {
 
 		@Override
 		public void handle(PacketThread packetThread, Packet packet) {
 			System.out.println("Receiver: " + packet.getPayload());
+			received = true;
 		}
 
 	}
