@@ -14,11 +14,10 @@ public class SenderReceiverTest {
 
 		ReceiverClient r = new ReceiverClient();
 		Executors.newSingleThreadExecutor().execute(r);
-
 		Executors.newSingleThreadExecutor().execute(new SenderClient());
 
-		while(!r.received)
-			Thread.sleep(10000);
+		// while(!r.received)
+		Thread.sleep(10000);
 
 		// dispose the transport factories
 		TransportRegistry.getInstance().disposeAll();

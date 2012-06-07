@@ -28,7 +28,7 @@ public class SenderClient implements Runnable {
 
 			TransportRegistry.getInstance().loadTransportFactory(
 					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.AS_DEFAULT,
+					prop, TransportRegistry.NO_DEFAULT,
 					"SENDER");
 
 			// register the "middle-ware"
