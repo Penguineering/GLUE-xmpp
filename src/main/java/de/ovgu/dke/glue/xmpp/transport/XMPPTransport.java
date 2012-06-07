@@ -55,7 +55,7 @@ public class XMPPTransport implements Transport {
 	private final URI peer;
 	private final XMPPClient client;
 
-	private SmackMessageConverter converter;
+	private final SmackMessageConverter converter;
 
 	private final PacketThreadManager threads;
 
@@ -166,14 +166,9 @@ public class XMPPTransport implements Transport {
 			SmackMessageConverter conv = this.getConverter();
 			pkt = conv.fromSmack(msg);
 
-			if (pkt.getThreadId() == null) {
-				throw new TransportException("Packet thread ID for "
-						+ pkt.getThreadId() + " could not be retrieved!");
-			} else if (this.getConverter() == null) {
-				// if we are fine here, store the converter
-				this.setConverter(conv);
-			}
-
+			if (pkt.getThreadId() == null) 
+				throw new TransportException("Received packet without thread ID!");
+			
 			// return the packet
 			return pkt;
 		} catch (SerializationException e) {
@@ -185,10 +180,6 @@ public class XMPPTransport implements Transport {
 
 	protected SmackMessageConverter getConverter() {
 		return converter;
-	}
-
-	protected void setConverter(SmackMessageConverter converter) {
-		this.converter = converter;
 	}
 
 	@Override
