@@ -18,6 +18,16 @@ import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
 public class SenderClient implements Runnable {
 
+	private ClientStatus status = ClientStatus.PREPARING;
+
+	public synchronized ClientStatus getStatus() {
+		return status;
+	}
+
+	public synchronized void setStatus(ClientStatus status) {
+		this.status = status;
+	}
+	
 	@Override
 	public void run() {
 		// initialize and register transport factory
@@ -28,8 +38,7 @@ public class SenderClient implements Runnable {
 
 			TransportRegistry.getInstance().loadTransportFactory(
 					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.NO_DEFAULT,
-					"SENDER");
+					prop, TransportRegistry.NO_DEFAULT, "SENDER");
 
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
@@ -40,13 +49,17 @@ public class SenderClient implements Runnable {
 									.valueOf(SerializationProvider.STRING))));
 
 			// get a transport
-			final Transport xmpp = TransportRegistry.getInstance().getTransportFactory("SENDER").createTransport(
-							URI.create("xmpp:peer2@jabber.org"));
-
+			final Transport xmpp = TransportRegistry.getInstance()
+					.getTransportFactory("SENDER")
+					.createTransport(URI.create("xmpp:peer2@jabber.org"));
+			// final Transport xmpp =
+			// TransportRegistry.getInstance().getTransportFactory("SENDER").createTransport(
+			// URI.create("xmpp:basti.dorok@googlemail.com"));
+			setStatus(ClientStatus.CONNECTING);
 			// create a connection
 			final Connection con = xmpp
 					.getConnection("http://dke.ovgu.de/glue/xmpp/test");
-
+			setStatus(ClientStatus.SENDING);
 			// create a packet thread
 			final PacketThread thread = con
 					.createThread(PacketThread.DEFAULT_HANDLER);
@@ -56,12 +69,11 @@ public class SenderClient implements Runnable {
 
 			// finish thread
 			// thread.dispose();
+			
+			setStatus(ClientStatus.FINISHED);
 		} catch (TransportException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			// } catch (InterruptedException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
+			setStatus(ClientStatus.ERROR);
 		}
 
 	}

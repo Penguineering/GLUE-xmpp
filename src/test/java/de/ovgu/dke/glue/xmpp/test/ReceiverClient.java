@@ -17,20 +17,29 @@ import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
 public class ReceiverClient implements Runnable {
 
-	public boolean received = false;
+	private ClientStatus status = ClientStatus.PREPARING;
+
+	public synchronized ClientStatus getStatus() {
+		return status;
+	}
+
+	public synchronized void setStatus(ClientStatus status) {
+		this.status = status;
+	}
 
 	@Override
 	public void run() {
 		// initialize and register transport factory
 		try {
+			setStatus(ClientStatus.PREPARING);
 			Properties prop = new Properties();
 			prop.setProperty(XMPPPropertiesConfigurationLoader.CONFIG_PATH,
 					"src/main/config/peer2@jabber.org.properties");
 
 			TransportRegistry.getInstance().loadTransportFactory(
 					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.AS_DEFAULT, "RECEIVER");
-
+					prop, TransportRegistry.NO_DEFAULT, "RECEIVER");
+			setStatus(ClientStatus.CONNECTING);
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
 					SchemaRecord.valueOf(
@@ -39,10 +48,11 @@ public class ReceiverClient implements Runnable {
 									.valueOf(new ToConsolePacketHandler()),
 							new SingleSerializerProvider(NullSerializer
 									.valueOf(SerializationProvider.STRING))));
+			setStatus(ClientStatus.LISTENING);
 		} catch (TransportException e) {
 			e.printStackTrace();
+			setStatus(ClientStatus.ERROR);
 		}
-
 	}
 
 	class ToConsolePacketHandler implements PacketHandler {
@@ -50,7 +60,7 @@ public class ReceiverClient implements Runnable {
 		@Override
 		public void handle(PacketThread packetThread, Packet packet) {
 			System.out.println("Receiver: " + packet.getPayload());
-			received = true;
+			setStatus(ClientStatus.FINISHED);
 		}
 
 	}
