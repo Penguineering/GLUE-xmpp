@@ -46,8 +46,8 @@ public class ReceiverClient implements Runnable {
 							"http://dke.ovgu.de/glue/xmpp/test",
 							SingletonPacketHandlerFactory
 									.valueOf(new ToConsolePacketHandler()),
-							new SingleSerializerProvider(NullSerializer
-									.valueOf(SerializationProvider.STRING))));
+							SingleSerializerProvider.of(NullSerializer
+									.of(SerializationProvider.STRING))));
 			setStatus(ClientStatus.LISTENING);
 		} catch (TransportException e) {
 			e.printStackTrace();

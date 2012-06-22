@@ -22,7 +22,6 @@
 package de.ovgu.dke.glue.xmpp.transport.capabilities;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import net.jcip.annotations.Immutable;

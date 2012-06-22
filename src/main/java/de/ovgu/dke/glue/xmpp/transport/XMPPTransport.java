@@ -70,7 +70,7 @@ public class XMPPTransport implements Transport {
 		final SchemaRecord record = SchemaRecord.valueOf(
 				CapabilitiesSerializer.SCHEMA, SingletonPacketHandlerFactory
 						.valueOf(new CapabilitiesPacketHandler()),
-				new SingleSerializerProvider(new TextCapabilitiesSerializer()));
+				SingleSerializerProvider.of(new TextCapabilitiesSerializer()));
 		SchemaRegistry.getInstance().registerSchemaRecord(record);
 
 		this.converter = new TextSmackMessageConverter();

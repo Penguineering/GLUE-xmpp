@@ -45,8 +45,8 @@ public class SenderClient implements Runnable {
 					SchemaRecord.valueOf(
 							"http://dke.ovgu.de/glue/xmpp/test",
 							new EchoPacketHandlerFactory(),
-							new SingleSerializerProvider(NullSerializer
-									.valueOf(SerializationProvider.STRING))));
+							SingleSerializerProvider.of(NullSerializer
+									.of(SerializationProvider.STRING))));
 
 			// get a transport
 			final Transport xmpp = TransportRegistry.getInstance()
