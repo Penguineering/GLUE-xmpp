@@ -52,6 +52,10 @@ public class ReceiverClient implements Runnable {
 		} catch (TransportException e) {
 			e.printStackTrace();
 			setStatus(ClientStatus.ERROR);
+		} catch (ClassNotFoundException e) {
+			// TODO check
+			e.printStackTrace();
+			setStatus(ClientStatus.ERROR);
 		}
 	}
 

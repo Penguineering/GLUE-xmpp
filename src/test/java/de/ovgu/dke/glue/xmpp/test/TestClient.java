@@ -40,7 +40,7 @@ import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 
 public class TestClient {
 	public static void main(String args[]) throws TransportException,
-			IOException {
+			IOException, ClassNotFoundException {
 
 		// initialize and register transport factory
 		TransportRegistry.getInstance().loadTransportFactory(

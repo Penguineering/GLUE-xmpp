@@ -27,7 +27,7 @@ public class SenderClient implements Runnable {
 	public synchronized void setStatus(ClientStatus status) {
 		this.status = status;
 	}
-	
+
 	@Override
 	public void run() {
 		// initialize and register transport factory
@@ -69,9 +69,13 @@ public class SenderClient implements Runnable {
 
 			// finish thread
 			// thread.dispose();
-			
+
 			setStatus(ClientStatus.FINISHED);
 		} catch (TransportException e) {
+			e.printStackTrace();
+			setStatus(ClientStatus.ERROR);
+		} catch (ClassNotFoundException e) {
+			// TODO check
 			e.printStackTrace();
 			setStatus(ClientStatus.ERROR);
 		}
