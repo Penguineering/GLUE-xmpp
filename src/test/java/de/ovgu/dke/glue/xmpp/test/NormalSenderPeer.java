@@ -2,6 +2,7 @@ package de.ovgu.dke.glue.xmpp.test;
 
 import java.net.URI;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.Connection;
@@ -16,70 +17,83 @@ import de.ovgu.dke.glue.util.serialization.NullSerializer;
 import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
-public class SenderClient implements Runnable {
+public class NormalSenderPeer extends AbstractPeer implements Runnable {
 
-	private ClientStatus status = ClientStatus.PREPARING;
+	private String peer;
+	private Object payload;
 
-	public synchronized ClientStatus getStatus() {
-		return status;
-	}
-
-	public synchronized void setStatus(ClientStatus status) {
-		this.status = status;
+	public NormalSenderPeer(String identifier, String propertiesKey,
+			String pathToProperties, String factoryClass, String peer,
+			Object payload) {
+		super(identifier, propertiesKey, pathToProperties, factoryClass);
+		this.peer = peer;
+		this.payload = payload;
 	}
 
 	@Override
 	public void run() {
 		// initialize and register transport factory
 		try {
+			setStatus(PeerStatus.PREPARING);
+			// set own config path via properties file
 			Properties prop = new Properties();
 			prop.setProperty(XMPPPropertiesConfigurationLoader.CONFIG_PATH,
-					"src/main/config/peer1@jabber.org.properties");
+					pathToProperties);
 
-			TransportRegistry.getInstance().loadTransportFactory(
-					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.NO_DEFAULT, "SENDER");
+			// register the transport factory
+			TransportRegistry.getInstance().loadTransportFactory(factoryClass,
+					prop, TransportRegistry.NO_DEFAULT, identifier);
 
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
-					SchemaRecord.valueOf(
-							"http://dke.ovgu.de/glue/xmpp/test",
+					SchemaRecord.valueOf("http://dke.ovgu.de/glue/xmpp/test",
 							new EchoPacketHandlerFactory(),
 							SingleSerializerProvider.of(NullSerializer
 									.of(SerializationProvider.STRING))));
 
 			// get a transport
+			setStatus(PeerStatus.CONNECTING);
 			final Transport xmpp = TransportRegistry.getInstance()
-					.getTransportFactory("SENDER")
-					.createTransport(URI.create("xmpp:peer2@jabber.org"));
-			// final Transport xmpp =
-			// TransportRegistry.getInstance().getTransportFactory("SENDER").createTransport(
-			// URI.create("xmpp:basti.dorok@googlemail.com"));
-			setStatus(ClientStatus.CONNECTING);
+					.getTransportFactory(identifier)
+					.createTransport(URI.create(peer));
 			// create a connection
 			final Connection con = xmpp
 					.getConnection("http://dke.ovgu.de/glue/xmpp/test");
-			setStatus(ClientStatus.SENDING);
 			// create a packet thread
+			setStatus(PeerStatus.SENDING);
 			final PacketThread thread = con
 					.createThread(PacketThread.DEFAULT_HANDLER);
 
 			// send something
-			thread.send("Hallo Welt!", Packet.Priority.DEFAULT);
+			thread.send(payload, Packet.Priority.DEFAULT);
 
 			// finish thread
-			// thread.dispose();
+			thread.dispose();
 
-			setStatus(ClientStatus.FINISHED);
+			setStatus(PeerStatus.FINISHED);
 		} catch (TransportException e) {
 			e.printStackTrace();
-			setStatus(ClientStatus.ERROR);
+			setStatus(PeerStatus.ERROR);
 		} catch (ClassNotFoundException e) {
-			// TODO check
 			e.printStackTrace();
-			setStatus(ClientStatus.ERROR);
+			setStatus(PeerStatus.ERROR);
 		}
 
+	}
+
+	public static void main(String[] args) throws InterruptedException {
+
+		NormalSenderPeer s = new NormalSenderPeer(args[0], args[1], args[2],
+				args[3], args[4], args[5]);
+		Executors.newSingleThreadExecutor().execute(s);
+		PeerStatus status;
+		do {
+			status = s.getStatus();
+			// redirect status to output stream
+			System.out.println("STATUS_" + status);
+		} while (status != PeerStatus.FINISHED);
+		// dispose the transport factories
+		TransportRegistry.getInstance().disposeAll();
 	}
 
 }

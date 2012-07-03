@@ -13,49 +13,41 @@ import de.ovgu.dke.glue.api.transport.TransportRegistry;
 import de.ovgu.dke.glue.util.serialization.NullSerializer;
 import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 import de.ovgu.dke.glue.util.transport.SingletonPacketHandlerFactory;
-import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
-public class ReceiverClient implements Runnable {
+public class NormalReceiverPeer extends AbstractPeer implements Runnable {
 
-	private ClientStatus status = ClientStatus.PREPARING;
+	private String message = null;
 
-	public synchronized ClientStatus getStatus() {
-		return status;
-	}
-
-	public synchronized void setStatus(ClientStatus status) {
-		this.status = status;
+	public NormalReceiverPeer(String identifier, String propertiesKey,
+			String pathToProperties, String factoryClass) {
+		super(identifier, propertiesKey, pathToProperties, factoryClass);
 	}
 
 	@Override
 	public void run() {
 		// initialize and register transport factory
 		try {
-			setStatus(ClientStatus.PREPARING);
+			setStatus(PeerStatus.PREPARING);
 			Properties prop = new Properties();
-			prop.setProperty(XMPPPropertiesConfigurationLoader.CONFIG_PATH,
-					"src/main/config/peer2@jabber.org.properties");
+			prop.setProperty(propertiesKey, pathToProperties);
 
-			TransportRegistry.getInstance().loadTransportFactory(
-					"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory",
-					prop, TransportRegistry.NO_DEFAULT, "RECEIVER");
-			setStatus(ClientStatus.CONNECTING);
+			TransportRegistry.getInstance().loadTransportFactory(factoryClass,
+					prop, TransportRegistry.NO_DEFAULT, identifier);
+			setStatus(PeerStatus.CONNECTING);
 			// register the "middle-ware"
 			SchemaRegistry.getInstance().registerSchemaRecord(
-					SchemaRecord.valueOf(
-							"http://dke.ovgu.de/glue/xmpp/test",
+					SchemaRecord.valueOf("http://dke.ovgu.de/glue/xmpp/test",
 							SingletonPacketHandlerFactory
 									.valueOf(new ToConsolePacketHandler()),
 							SingleSerializerProvider.of(NullSerializer
 									.of(SerializationProvider.STRING))));
-			setStatus(ClientStatus.LISTENING);
+			setStatus(PeerStatus.LISTENING);
 		} catch (TransportException e) {
 			e.printStackTrace();
-			setStatus(ClientStatus.ERROR);
+			setStatus(PeerStatus.ERROR);
 		} catch (ClassNotFoundException e) {
-			// TODO check
 			e.printStackTrace();
-			setStatus(ClientStatus.ERROR);
+			setStatus(PeerStatus.ERROR);
 		}
 	}
 
@@ -63,10 +55,14 @@ public class ReceiverClient implements Runnable {
 
 		@Override
 		public void handle(PacketThread packetThread, Packet packet) {
-			System.out.println("Receiver: " + packet.getPayload());
-			setStatus(ClientStatus.FINISHED);
+			message = String.valueOf(packet.getPayload());
+			setStatus(PeerStatus.FINISHED);
 		}
 
+	}
+
+	public Object getMessage() {
+		return message;
 	}
 
 }
