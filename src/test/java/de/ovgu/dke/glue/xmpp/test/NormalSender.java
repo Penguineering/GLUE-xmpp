@@ -17,12 +17,12 @@ import de.ovgu.dke.glue.util.serialization.NullSerializer;
 import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
-public class NormalSenderPeer extends AbstractPeer implements Runnable {
+public class NormalSender extends AbstractPeer implements Runnable {
 
 	private String peer;
 	private Object payload;
 
-	public NormalSenderPeer(String identifier, String propertiesKey,
+	public NormalSender(String identifier, String propertiesKey,
 			String pathToProperties, String factoryClass, String peer,
 			Object payload) {
 		super(identifier, propertiesKey, pathToProperties, factoryClass);
@@ -83,7 +83,7 @@ public class NormalSenderPeer extends AbstractPeer implements Runnable {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		NormalSenderPeer s = new NormalSenderPeer(args[0], args[1], args[2],
+		NormalSender s = new NormalSender(args[0], args[1], args[2],
 				args[3], args[4], args[5]);
 		Executors.newSingleThreadExecutor().execute(s);
 		PeerStatus status;

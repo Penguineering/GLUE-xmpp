@@ -24,7 +24,7 @@ public class MessageTest implements PropertyChangeListener {
 	public void test() throws IOException, InterruptedException {
 		String message = "Hello World! We're sending between different VMs.";
 
-		NormalReceiverPeer r = new NormalReceiverPeer("RECEIVER",
+		NormalReceiver r = new NormalReceiver("RECEIVER",
 				XMPPPropertiesConfigurationLoader.CONFIG_PATH,
 				"src/main/config/peer2@jabber.org.properties",
 				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory");
@@ -33,13 +33,12 @@ public class MessageTest implements PropertyChangeListener {
 		boolean forked = false;
 		while (receiverStatus != PeerStatus.FINISHED
 				|| senderStatus != PeerStatus.FINISHED) {
-			Thread.sleep(10);
 			switch (receiverStatus) {
 			case LISTENING:
 				if (!forked) {
 					forked = true;
 					createSender(
-							"de.ovgu.dke.glue.xmpp.test.NormalSenderPeer",
+							"de.ovgu.dke.glue.xmpp.test.NormalSender",
 							"SENDER",
 							XMPPPropertiesConfigurationLoader.CONFIG_PATH,
 							"src/main/config/peer1@jabber.org.properties",

@@ -14,11 +14,11 @@ import de.ovgu.dke.glue.util.serialization.NullSerializer;
 import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 import de.ovgu.dke.glue.util.transport.SingletonPacketHandlerFactory;
 
-public class NormalReceiverPeer extends AbstractPeer implements Runnable {
+public class NormalReceiver extends AbstractPeer implements Runnable {
 
 	private String message = null;
 
-	public NormalReceiverPeer(String identifier, String propertiesKey,
+	public NormalReceiver(String identifier, String propertiesKey,
 			String pathToProperties, String factoryClass) {
 		super(identifier, propertiesKey, pathToProperties, factoryClass);
 	}
