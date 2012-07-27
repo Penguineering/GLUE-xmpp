@@ -34,6 +34,7 @@ import de.ovgu.dke.glue.api.transport.SchemaRegistry;
  * @author Stefan Haun (stefan.haun@ovgu.de)
  * 
  */
+//TODO hashCode!
 @Immutable
 public class SerializationCapability {
 	private final String format;
