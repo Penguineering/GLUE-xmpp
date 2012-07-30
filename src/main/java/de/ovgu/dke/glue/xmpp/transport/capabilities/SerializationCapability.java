@@ -34,7 +34,6 @@ import de.ovgu.dke.glue.api.transport.SchemaRegistry;
  * @author Stefan Haun (stefan.haun@ovgu.de)
  * 
  */
-//TODO hashCode!
 @Immutable
 public class SerializationCapability {
 	private final String format;
@@ -52,6 +51,15 @@ public class SerializationCapability {
 
 	public String getSchema() {
 		return schema;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((format == null) ? 0 : format.hashCode());
+		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
+		return result;
 	}
 
 	@Override
