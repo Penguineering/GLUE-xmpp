@@ -80,10 +80,13 @@ public class XMPPPropertiesConfigurationLoader implements
 
 		if (cfile != null && cfile.exists())
 			// load from configuration file
-			config = new XMPPConfiguration(cfile.getAbsolutePath());
-		else
+			config = XMPPConfiguration.fromFile(cfile.getAbsolutePath());
+		else if (env != null)
 			// or try to get from environment
 			config = XMPPConfiguration.fromProperties(env);
+		else
+			throw new ConfigurationException(
+					"XMPP transport configuration could not be found!");
 
 		return config;
 	}

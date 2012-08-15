@@ -63,11 +63,19 @@ public class XMPPConfiguration {
 	 * @throws ConfigurationException
 	 *             if the configuration cannot be loaded
 	 */
-	public XMPPConfiguration(final String propfile)
+	public static XMPPConfiguration fromFile(final String propfile)
 			throws ConfigurationException {
-		this(new PropertiesConfiguration(propfile));
+		return new XMPPConfiguration(new PropertiesConfiguration(propfile));
 	}
 
+	/**
+	 * Create a configuration from a properties object.
+	 * 
+	 * @param props
+	 *            Properties object containing the configuration values.
+	 * @return XMPP configuration instance.
+	 * @throws NullPointerException if the props parameter is @code{null}
+	 */
 	public static XMPPConfiguration fromProperties(final Properties props) {
 		final Configuration conf = new PropertiesConfiguration();
 
