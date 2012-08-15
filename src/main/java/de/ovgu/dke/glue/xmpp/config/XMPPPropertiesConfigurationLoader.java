@@ -61,6 +61,7 @@ public class XMPPPropertiesConfigurationLoader implements
 		return cfile;
 	}
 
+	// TODO environment should have precedence
 	@Override
 	public XMPPConfiguration loadConfiguration(final Properties env)
 			throws ConfigurationException {
@@ -75,11 +76,14 @@ public class XMPPPropertiesConfigurationLoader implements
 		} else
 			cfile = getConfigFile();
 
-		if (cfile == null || (!cfile.exists()))
-			throw new ConfigurationException("Config file could not be found!");
+		final XMPPConfiguration config;
 
-		final XMPPConfiguration config = new XMPPConfiguration(
-				cfile.getAbsolutePath());
+		if (cfile != null && cfile.exists())
+			// load from configuration file
+			config = new XMPPConfiguration(cfile.getAbsolutePath());
+		else
+			// or try to get from environment
+			config = XMPPConfiguration.fromProperties(env);
 
 		return config;
 	}

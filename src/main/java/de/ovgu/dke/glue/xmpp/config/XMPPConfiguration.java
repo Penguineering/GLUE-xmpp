@@ -21,6 +21,8 @@
  */
 package de.ovgu.dke.glue.xmpp.config;
 
+import java.util.Properties;
+
 import net.jcip.annotations.Immutable;
 
 import org.apache.commons.configuration.Configuration;
@@ -64,6 +66,15 @@ public class XMPPConfiguration {
 	public XMPPConfiguration(final String propfile)
 			throws ConfigurationException {
 		this(new PropertiesConfiguration(propfile));
+	}
+
+	public static XMPPConfiguration fromProperties(final Properties props) {
+		final Configuration conf = new PropertiesConfiguration();
+
+		for (Object key : props.keySet())
+			conf.addProperty(key.toString(), props.getProperty(key.toString()));
+
+		return new XMPPConfiguration(conf);
 	}
 
 	/**
