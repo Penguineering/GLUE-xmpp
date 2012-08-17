@@ -316,6 +316,8 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		synchronized (conn_lock) {
 			// TODO thread sollten beim Schließen der einzelnen Transports
 			// "entsorgt" werden.
+			
+			//TODO warten, bis SMACK-connection geschlossen ist
 
 			if (connection != null) {
 				// dispose the threads
