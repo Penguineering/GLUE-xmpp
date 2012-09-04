@@ -21,26 +21,24 @@
  */
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
-import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet.Priority;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.transport.XMPPConn;
+import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
+import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 
 //TODO synchronization
-public class XMPPPacketThread implements PacketThread {
-	private final XMPPConn connection;
+public class XMPPPacketThread extends PacketThread {
 
 	private final String id;
 
 	private PacketHandler handler;
 
-
 	public XMPPPacketThread(XMPPConn connection, String id,
-			PacketHandler handler)
-			throws TransportException {
-		this.connection = connection;
+			PacketHandler handler) throws TransportException {
+		super(connection);
 		this.id = id;
 
 		this.handler = handler;
@@ -68,18 +66,23 @@ public class XMPPPacketThread implements PacketThread {
 
 	@Override
 	public void dispose() {
-		connection.disposeThread(this);
+		((XMPPConn) getConnection()).disposeThread(this);
 	}
 
 	@Override
-	public void send(Object payload, Priority priority)
+	public void sendSerializedPayload(Object payload, Priority priority)
 			throws TransportException {
-		connection.send(this, payload, priority);
-	}
+		final XMPPTransport transport = (XMPPTransport) getConnection()
+				.getTransport();
+		if (transport == null)
+			throw new TransportException(
+					"Transport is not available for packet thread "
+							+ this.getId());
 
-	@Override
-	public Connection getConnection() {
-		return connection;
+		final XMPPPacket pkt = ((XMPPConn) getConnection()).createPacket(this,
+				payload, priority);
+
+		transport.sendPacket(this, pkt);
 	}
 
 	@Override
