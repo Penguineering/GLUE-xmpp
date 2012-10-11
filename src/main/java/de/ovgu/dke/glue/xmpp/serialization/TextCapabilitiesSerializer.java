@@ -54,7 +54,7 @@ public class TextCapabilitiesSerializer extends CapabilitiesSerializer {
 		@SuppressWarnings("unchecked")
 		final List<SerializationCapability> capabilities = (List<SerializationCapability>) o;
 
-		StringBuffer payload = new StringBuffer("SERIALIZERS ");
+		StringBuilder payload = new StringBuilder("SERIALIZERS ");
 		payload.append(capabilities.size());
 		payload.append("\n");
 

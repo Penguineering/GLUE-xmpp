@@ -42,7 +42,7 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 		msg.setType(Message.Type.chat);
 
 		// add payload
-		StringBuffer payload = new StringBuffer();
+		StringBuilder payload = new StringBuilder();
 
 		// first line: thread id
 		payload.append(pkt.getThreadId());
