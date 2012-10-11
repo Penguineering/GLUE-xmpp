@@ -35,38 +35,38 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
 
 public class PacketThreadManager implements ThreadIDGenerator {
-	private final Map<String, XMPPPacketThread> threads;
+	private final Map<XMPPThreadId, XMPPPacketThread> threads;
 
 	private final ThreadIDGenerator generator;
 
 	public PacketThreadManager(final ThreadIDGenerator generator) {
 		this.generator = generator;
-		this.threads = new ConcurrentHashMap<String, XMPPPacketThread>();
+		this.threads = new ConcurrentHashMap<XMPPThreadId, XMPPPacketThread>();
 	}
 
 	public void registerThread(XMPPPacketThread thread) {
 		threads.put(thread.getId(), thread);
 	}
 
-	public void removeThread(String id) {
+	public void removeThread(XMPPThreadId id) {
 		threads.remove(id);
 	}
 
-	public XMPPPacketThread retrieveThread(String id) {
+	public XMPPPacketThread retrieveThread(XMPPThreadId id) {
 		return threads.get(id);
 	}
 
-	public Collection<String> getThreadIDs() {
+	public Collection<XMPPThreadId> getThreadIDs() {
 		return Collections.unmodifiableCollection(threads.keySet());
 	}
 
 	@Override
-	public String generateThreadID() throws TransportException {
+	public XMPPThreadId generateThreadID() throws TransportException {
 		return generator.generateThreadID();
 	}
 
 	@Override
-	public String generateMetaThreadID() throws TransportException {
+	public XMPPThreadId generateMetaThreadID() throws TransportException {
 		return generator.generateMetaThreadID();
 	}
 
@@ -80,7 +80,7 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	 * @return
 	 * @throws TransportException
 	 */
-	public PacketThread addThread(XMPPConn connection, String id,
+	public PacketThread addThread(XMPPConn connection, XMPPThreadId id,
 			PacketHandler handler) throws TransportException {
 		// create packet thread
 		XMPPPacketThread pt = new XMPPPacketThread(connection, id, handler);
@@ -94,7 +94,7 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	public PacketThread createThread(XMPPConn connection, PacketHandler handler)
 			throws TransportException {
 		// generate id
-		final String id = this.generateThreadID();
+		final XMPPThreadId id = this.generateThreadID();
 
 		return addThread(connection, id, handler);
 	}
@@ -102,12 +102,12 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	public PacketThread createMetaThread(XMPPTransport transport)
 			throws TransportException {
 		// fixed id for each transport
-		final String id = this.generateMetaThreadID();
+		final XMPPThreadId id = this.generateMetaThreadID();
 
 		// TODO capabilities packet handler
 		final PacketHandler handler = new CapabilitiesPacketHandler();
 
-		final XMPPConn con = (XMPPConn)transport
+		final XMPPConn con = (XMPPConn) transport
 				.getConnection(CapabilitiesSerializer.SCHEMA);
 
 		// TODO this can be done via schema registry

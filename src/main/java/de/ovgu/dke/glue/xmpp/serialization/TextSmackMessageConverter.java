@@ -22,6 +22,7 @@
 package de.ovgu.dke.glue.xmpp.serialization;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.jivesoftware.smack.packet.Message;
 
@@ -30,6 +31,7 @@ import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
+import de.ovgu.dke.glue.xmpp.transport.thread.XMPPThreadId;
 
 public class TextSmackMessageConverter implements SmackMessageConverter {
 	protected static String URI_PREFIX = "xmpp:";
@@ -65,26 +67,35 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 	@Override
 	public XMPPPacket fromSmack(Message msg) throws SerializationException {
 		String body = msg.getBody();
-		String id = null;
+		XMPPThreadId id = null;
 		String schema = null;
 
+		String _id = null;
 		// first line: thread id
 		if (body != null) {
 			// take the first line from payload
 			int br_idx = body.indexOf('\n');
 			if (br_idx >= 0) {
-				id = body.substring(0, br_idx);
+				_id = body.substring(0, br_idx);
 				if (body.length() > br_idx)
 					body = body.substring(br_idx + 1);
 				else
 					body = null;
 			} else if (br_idx == 0) {
-				id = null;
+				_id = null;
 			} else {
-				id = body;
+				_id = body;
 				body = null;
 			}
 		}
+
+		if (_id != null)
+			try {
+				id = XMPPThreadId.fromString(_id);
+			} catch (URISyntaxException e) {
+				throw new SerializationException(
+						"Invalid URI syntax in thread ID: " + _id, e);
+			}
 
 		// second line: schema
 		if (body != null) {

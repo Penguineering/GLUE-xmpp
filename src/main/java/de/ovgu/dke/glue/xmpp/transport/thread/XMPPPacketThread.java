@@ -32,19 +32,23 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 //TODO synchronization
 public class XMPPPacketThread extends PacketThread {
 
-	private final String id;
+	// Immutable
+	private final XMPPThreadId id;
 
 	private PacketHandler handler;
 
-	public XMPPPacketThread(XMPPConn connection, String id,
+	public XMPPPacketThread(XMPPConn connection, XMPPThreadId id,
 			PacketHandler handler) throws TransportException {
 		super(connection);
+
+		if (id == null)
+			throw new NullPointerException("Packet thread id may not be null!");
 		this.id = id;
 
 		this.handler = handler;
 	}
 
-	public String getId() {
+	public XMPPThreadId getId() {
 		return id;
 	}
 
@@ -53,7 +57,7 @@ public class XMPPPacketThread extends PacketThread {
 	 */
 	@Override
 	public String toString() {
-		return id;
+		return id.toString();
 	}
 
 	public PacketHandler getHandler() {

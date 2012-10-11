@@ -51,6 +51,7 @@ import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
+import de.ovgu.dke.glue.xmpp.transport.thread.XMPPThreadId;
 
 /**
  * XMPP Client to receive and evaluate XMPP requests.
@@ -321,7 +322,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 			if (connection != null) {
 				// dispose the threads
-				for (String id : this.threads.getThreadIDs()) {
+				for (XMPPThreadId id : this.threads.getThreadIDs()) {
 					final PacketThread pt = this.threads.retrieveThread(id);
 					if (pt != null)
 						pt.dispose();

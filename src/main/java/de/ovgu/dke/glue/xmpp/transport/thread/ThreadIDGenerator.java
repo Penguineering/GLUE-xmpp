@@ -24,7 +24,7 @@ package de.ovgu.dke.glue.xmpp.transport.thread;
 import de.ovgu.dke.glue.api.transport.TransportException;
 
 public interface ThreadIDGenerator {
-	public String generateThreadID() throws TransportException;
+	public XMPPThreadId generateThreadID() throws TransportException;
 
 	/**
 	 * The thread ID for meta communication (such as capabilities).
@@ -32,5 +32,5 @@ public interface ThreadIDGenerator {
 	 * @return
 	 * @throws TransportException
 	 */
-	public String generateMetaThreadID() throws TransportException;
+	public XMPPThreadId generateMetaThreadID() throws TransportException;
 }

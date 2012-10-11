@@ -28,22 +28,24 @@ import net.jcip.annotations.ThreadSafe;
 import org.jivesoftware.smack.packet.Packet;
 
 import de.ovgu.dke.glue.util.transport.AbstractPacket;
+import de.ovgu.dke.glue.xmpp.transport.thread.XMPPThreadId;
 
 @ThreadSafe
 public class XMPPPacket extends AbstractPacket {
 	private final URI sender;
 	private final URI receiver;
-	private final String thread_id;
+	private final XMPPThreadId thread_id;
 	private final String schema;
 	private final Packet xmpp_packet;
 
 	public XMPPPacket(Object payload, Priority priority, URI sender,
-			URI receiver, String thread_id, String schema) {
+			URI receiver, XMPPThreadId thread_id, String schema) {
 		this(payload, priority, sender, receiver, thread_id, schema, null);
 	}
 
 	public XMPPPacket(Object payload, Priority priority, URI sender,
-			URI receiver, String thread_id, String schema, Packet xmpp_packet) {
+			URI receiver, XMPPThreadId thread_id, String schema,
+			Packet xmpp_packet) {
 		super(payload, priority);
 		this.sender = sender;
 		this.receiver = receiver;
@@ -60,7 +62,7 @@ public class XMPPPacket extends AbstractPacket {
 		return receiver;
 	}
 
-	public String getThreadId() {
+	public XMPPThreadId getThreadId() {
 		return thread_id;
 	}
 

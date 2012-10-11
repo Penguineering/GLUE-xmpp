@@ -22,6 +22,7 @@
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import de.ovgu.dke.glue.api.transport.TransportException;
 
@@ -34,20 +35,32 @@ public class CountingThreadIDGenerator implements ThreadIDGenerator {
 	}
 
 	@Override
-	public String generateThreadID() throws TransportException {
+	public XMPPThreadId generateThreadID() throws TransportException {
 		synchronized (last_id) {
 			last_id++;
 			final String id = local_peer.toASCIIString() + ":"
 					+ Integer.toString(last_id);
 
-			return id;
+			return createThreadId(id);
 		}
 	}
 
 	@Override
-	public String generateMetaThreadID() throws TransportException {
+	public XMPPThreadId generateMetaThreadID() throws TransportException {
 		final String id = local_peer.toASCIIString() + ":meta";
 
-		return id;
+		return createThreadId(id);
+	}
+
+	// only if the URI is certainly correct!!!
+	private XMPPThreadId createThreadId(String uri) {
+		try {
+			return XMPPThreadId.fromString(uri);
+		} catch (URISyntaxException e) {
+			// this should never be possible!
+			throw new IllegalStateException(
+					"Assertion failed: got URI syntax exception which should not be possible: "
+							+ e.getMessage(), e);
+		}
 	}
 }
