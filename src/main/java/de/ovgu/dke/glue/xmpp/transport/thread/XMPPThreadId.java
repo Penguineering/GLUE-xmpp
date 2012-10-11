@@ -36,6 +36,9 @@ import net.jcip.annotations.Immutable;
 public class XMPPThreadId {
 	private final URI id;
 
+	// cache value, derived from id
+	private URI local_jid;
+
 	/**
 	 * Get the representation for a specific URI.
 	 * 
@@ -75,15 +78,46 @@ public class XMPPThreadId {
 	 *            the represented thread ID
 	 * @throws NullPointerException
 	 *             if the id parameter is null
+	 * @throws IllegalArgumentException
+	 *             if the URL format does not match xmpp:[jid]:[thread_id]
 	 */
 	private XMPPThreadId(final URI id) {
 		if (id == null)
 			throw new NullPointerException("Id may not be null!");
+
+		// TODO move to thread ID generator?
+		if (id.toString().indexOf(':') < 0)
+			throw new IllegalArgumentException(
+					"Thread ID does not match convention!");
+
 		this.id = id;
+		this.local_jid = null;
 	}
 
 	public URI getId() {
 		return id;
+	}
+
+	/**
+	 * 
+	 * @param jid
+	 * @return
+	 * @throws NullPointerException
+	 *             if the jid parameter is null
+	 */
+	// TODO move to thread ID generator?
+	public boolean isSameClient(final URI jid) {
+		if (jid == null)
+			throw new NullPointerException("jid parameter may not be null!");
+
+		// check cache value
+		if (local_jid == null) {
+			final String _id = id.toString();
+			final int _idx = _id.lastIndexOf(':');
+			local_jid = URI.create(_id.substring(0, _idx));
+		}
+
+		return jid.equals(local_jid);
 	}
 
 	@Override

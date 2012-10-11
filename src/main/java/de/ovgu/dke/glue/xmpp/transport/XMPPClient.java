@@ -238,15 +238,22 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 			XMPPPacketThread pt = threads.retrieveThread(pkt.getThreadId());
 
 			if (pt == null) {
-				logger.debug("Creating new packet thread with ID "
-						+ pkt.getThreadId());
-				final XMPPConn con = (XMPPConn) transport.getConnection(pkt
-						.getSchema());
-				final PacketHandlerFactory phf = SchemaRegistry.getInstance()
-						.getPacketHandlerFactory(pkt.getSchema());
+				// TODO check if the ID is local -> not allowed!
+				if (pkt.getThreadId().isSameClient(this.getLocalURI())) {
+					logger.error("Received foreign thread with unknown local ID!");
+					// TODO send error message and abort
+				} else {
+					logger.debug("Creating new packet thread with ID "
+							+ pkt.getThreadId());
+					final XMPPConn con = (XMPPConn) transport.getConnection(pkt
+							.getSchema());
+					final PacketHandlerFactory phf = SchemaRegistry
+							.getInstance().getPacketHandlerFactory(
+									pkt.getSchema());
 
-				pt = (XMPPPacketThread) threads.addThread(con,
-						pkt.getThreadId(), phf.createPacketHandler());
+					pt = (XMPPPacketThread) threads.addThread(con,
+							pkt.getThreadId(), phf.createPacketHandler());
+				}
 			}
 
 			if (pt != null) {
@@ -317,8 +324,8 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		synchronized (conn_lock) {
 			// TODO thread sollten beim Schließen der einzelnen Transports
 			// "entsorgt" werden.
-			
-			//TODO warten, bis SMACK-connection geschlossen ist
+
+			// TODO warten, bis SMACK-connection geschlossen ist
 
 			if (connection != null) {
 				// dispose the threads
