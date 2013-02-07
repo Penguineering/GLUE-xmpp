@@ -44,12 +44,15 @@ public class TextCapabilitiesSerializer extends CapabilitiesSerializer {
 
 	@Override
 	public Object serialize(Object o) throws SerializationException {
+		if (o == null)
+			throw new NullPointerException(
+					"Serializer call with null reference!");
+		
 		// check object type
 		if (!(o instanceof List<?>))
 			throw new SerializationException(
 					"Serializer expected list of SerializationCapability, got "
-							+ (o == null ? "null" : o.getClass()
-									.getCanonicalName()) + " instead!");
+							+ o.getClass().getCanonicalName() + " instead!");
 
 		@SuppressWarnings("unchecked")
 		final List<SerializationCapability> capabilities = (List<SerializationCapability>) o;
