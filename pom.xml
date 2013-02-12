@@ -7,7 +7,32 @@
 	<version>0.1.1-SNAPSHOT</version>
 	
 	<name>glue-xmpp</name>
-
+	<description>
+		GLUE is a Java library that simplifies asynchronous communication between 
+		heterogeneous software components. This package contains a XMPP transport
+		implementation based on SMACK.
+	</description>
+	<url>https://projects.dke-research.de/redmine/projects/glue/</url>
+	
+	<licenses>
+	    <license>
+	        <name>The Apache Software License, Version 2.0</name>
+	        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	        <distribution>repo</distribution>
+	    </license>
+	</licenses>
+	
+	<scm>
+	    <url>https://projects.dke-research.de/svn/tools/glue/glue-xmpp/</url>	    
+	</scm>
+	
+	<developers>
+	    <developer>
+	        <name>Stefan Haun</name>
+			<email>stefan.haun@ovgu.de</email>	        
+       </developer>
+	</developers>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<skipTests>false</skipTests>
@@ -36,6 +61,21 @@
 					</execution>
 				</executions>
 			</plugin>
+ 			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-javadoc-plugin</artifactId>
+        		<version>2.9</version>
+        		<configuration>
+          			<nohelp>true</nohelp>
+        		</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+        	</plugin>						
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -47,9 +87,7 @@
 		</plugins>
 	</build>
 
-	<!-- common dependencies -->
 	<dependencies>
-
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-core</artifactId>
