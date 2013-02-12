@@ -1,18 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	
 	<groupId>de.ovgu.dke.glue</groupId>
 	<artifactId>glue-xmpp</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
+	
 	<name>glue-xmpp</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<!-- skip tests by default - FIXME -->
 		<skipTests>false</skipTests>
 	</properties>
-
+		
 	<build>
 		<plugins>
 			<plugin>
@@ -47,57 +47,13 @@
 		</plugins>
 	</build>
 
-
-	<repositories>
-		<repository>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-
-			<id>nexus</id>
-			<name>dke-group public nexus repository</name>
-			<url>http://svndke.cs.uni-magdeburg.de:8081/nexus/content/groups/public/</url>
-			<layout>default</layout>
-		</repository>
-	</repositories>
-
-	<distributionManagement>
-
-		<!-- NOTE: if you want to deploy artifacts to the repository, you need 
-			to specify the authentication credentials in ~/.m1/settings.xml like this: 
-			<settings> ... <servers> ... <server> <id>nexus</id> <username>deployment</username> 
-			<password>deployment123</password> </server> </servers> ... </settings> id 
-			has to match the one stated below -->
-		<snapshotRepository>
-			<id>nexus.snapshots</id>
-			<name>snapshots</name>
-			<url>http://svndke.cs.uni-magdeburg.de:8081/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
-
-		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>nexus.releases</id>
-			<name>snapshots</name>
-			<url>http://svndke.cs.uni-magdeburg.de:8081/nexus/content/repositories/releases</url>
-			<layout>default</layout>
-		</repository>
-
-	</distributionManagement>
-
 	<!-- common dependencies -->
 	<dependencies>
 
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-core</artifactId>
-			<version>0.2.1</version>
+			<version>0.2.2</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
@@ -105,7 +61,7 @@
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-apitest</artifactId>
-			<version>0.2.2</version>
+			<version>0.2.3</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -113,7 +69,7 @@
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-util</artifactId>
-			<version>0.2.1</version>
+			<version>0.2.2</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
