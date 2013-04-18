@@ -24,6 +24,8 @@ package de.ovgu.dke.glue.xmpp.transport;
 import java.net.URI;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.serialization.SerializationException;
@@ -52,6 +54,8 @@ import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 // follows http://xmpp.org/extensions/xep-0201.html for message threading
 // TODO variables threading-verfahren korrekt umsetzen
 public class XMPPTransport implements Transport {
+	static final Log log = LogFactory.getLog(XMPPTransport.class);
+
 	private final URI peer;
 	private final XMPPClient client;
 
@@ -145,6 +149,12 @@ public class XMPPTransport implements Transport {
 			// create an XMPP message
 			SmackMessageConverter conv = this.getConverter();
 
+			// log message content
+			if (log.isDebugEnabled())
+				log.debug("Sending packet to "
+						+ packet.getReceiver().toASCIIString() + " "
+						+ packet.getPayload());
+
 			final Message msg = conv.toSmack(packet, ser);
 			client.enqueuePacket(msg);
 		} catch (InterruptedException e) {
@@ -166,9 +176,10 @@ public class XMPPTransport implements Transport {
 			SmackMessageConverter conv = this.getConverter();
 			pkt = conv.fromSmack(msg);
 
-			if (pkt.getThreadId() == null) 
-				throw new TransportException("Received packet without thread ID!");
-			
+			if (pkt.getThreadId() == null)
+				throw new TransportException(
+						"Received packet without thread ID!");
+
 			// return the packet
 			return pkt;
 		} catch (SerializationException e) {
