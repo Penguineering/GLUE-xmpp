@@ -102,7 +102,9 @@ public class XMPPConn implements Connection {
 
 	@Override
 	public boolean checkCapabilities() throws TransportException {
-		return transport.checkCapabilities(getConnectionSchema());
+		// return transport.checkCapabilities(getConnectionSchema());
+		// TODO returning true while capabilities are not really negotiated
+		return true;
 	}
 
 	@Override
