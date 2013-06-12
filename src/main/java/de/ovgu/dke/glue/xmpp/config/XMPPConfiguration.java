@@ -41,7 +41,7 @@ public class XMPPConfiguration {
 	/**
 	 * The prefix for XMPP configuration keys.
 	 */
-	public static final String prefix = "de.ovgu.dke.glue.xmpp.";
+	public static final String PREFIX = "de.ovgu.dke.glue.xmpp.";
 
 	private final String server;
 
@@ -92,14 +92,14 @@ public class XMPPConfiguration {
 	 *            An Apache commons-configuration provider
 	 */
 	public XMPPConfiguration(Configuration config) {
-		server = config.getString(prefix + "server");
+		server = config.getString(PREFIX + "server");
 
-		user = config.getString(prefix + "user");
-		pass = config.getString(prefix + "pass");
-		resource = config.getString(prefix + "resource");
+		user = config.getString(PREFIX + "user");
+		pass = config.getString(PREFIX + "pass");
+		resource = config.getString(PREFIX + "resource");
 
-		priority = config.getInt(prefix + "priority", 5);
-		compression = config.getBoolean(prefix + "compression");
+		priority = config.getInt(PREFIX + "priority", 5);
+		compression = config.getBoolean(PREFIX + "compression");
 	}
 
 	/**
