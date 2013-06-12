@@ -74,7 +74,8 @@ public class XMPPConfiguration {
 	 * @param props
 	 *            Properties object containing the configuration values.
 	 * @return XMPP configuration instance.
-	 * @throws NullPointerException if the props parameter is @code{null}
+	 * @throws NullPointerException
+	 *             if the props parameter is @code{null}
 	 */
 	public static XMPPConfiguration fromProperties(final Properties props) {
 		final Configuration conf = new PropertiesConfiguration();
@@ -86,12 +87,26 @@ public class XMPPConfiguration {
 	}
 
 	/**
-	 * Create an XMPPConfiguration object from the provided configuration
+	 * Check if the properties are sufficient for configuration, i.e. no file
+	 * must be loaded. This does not guarantee a successful login!
+	 * 
+	 * @param props
+	 *            Properties which shall be used for configuration, may be null.
+	 * @return true if the transport can be configured from the properties.
+	 */
+	public static boolean isValidEnvironment(final Properties props) {
+		return props != null && props.containsKey(PREFIX + "server")
+				&& props.containsKey(PREFIX + "user");
+	}
+
+	/**
+	 * Create an XMPPConfiguration object from the provided configuration. This
+	 * can only be called by one of the from-construction methods.
 	 * 
 	 * @param config
-	 *            An Apache commons-configuration provider
+	 *            A configuration provider
 	 */
-	public XMPPConfiguration(Configuration config) {
+	private XMPPConfiguration(Configuration config) {
 		server = config.getString(PREFIX + "server");
 
 		user = config.getString(PREFIX + "user");
@@ -99,7 +114,8 @@ public class XMPPConfiguration {
 		resource = config.getString(PREFIX + "resource");
 
 		priority = config.getInt(PREFIX + "priority", 5);
-		compression = config.getBoolean(PREFIX + "compression");
+
+		compression = config.getBoolean(PREFIX + "compression", false);
 	}
 
 	/**

@@ -31,6 +31,7 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportFactory;
 import de.ovgu.dke.glue.api.transport.TransportLifecycleListener;
+import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.config.XMPPConfigurationLoader;
 import de.ovgu.dke.glue.xmpp.config.XMPPPropertiesConfigurationLoader;
 
@@ -42,11 +43,30 @@ public class XMPPTransportFactory implements TransportFactory {
 	public XMPPTransportFactory() {
 	}
 
+	/**
+	 * @param config
+	 *            The configuration, which may have one of three states: Either
+	 *            it contains the configuration keys for the XMPP transport (see
+	 *            configuration example file), or it contains the key
+	 *            de.ovgu.dke.glue.xmpp.configpath with a path to the
+	 *            configuration file, or it is empty with respect to XMPP
+	 *            configuration, then the configuration file will be searched in
+	 *            the standards paths.
+	 */
 	@Override
 	public void init(final Properties config) throws TransportException {
 		try {
-			final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
-			this.client = new XMPPClient(confLoader.loadConfiguration(config));
+			// The XMPP configuration is loaded directly from the properties, if
+			// sufficient, otherwise the file loading mechanism is used.
+			final XMPPConfiguration xmpp_conf;
+			if (XMPPConfiguration.isValidEnvironment(config))
+				xmpp_conf = XMPPConfiguration.fromProperties(config);
+			else {
+				final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
+				xmpp_conf = confLoader.loadConfiguration(config);
+			}
+			this.client = new XMPPClient(xmpp_conf);
+
 			this.client.startup();
 		} catch (ConfigurationException e) {
 			throw new TransportException("Error loading the configuration: "
