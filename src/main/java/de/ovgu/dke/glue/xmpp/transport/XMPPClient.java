@@ -51,7 +51,6 @@ import de.ovgu.dke.glue.xmpp.config.XMPPConfiguration;
 import de.ovgu.dke.glue.xmpp.transport.thread.CountingThreadIDGenerator;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
-import de.ovgu.dke.glue.xmpp.transport.thread.XMPPThreadId;
 
 /**
  * XMPP Client to receive and evaluate XMPP requests.
@@ -239,10 +238,12 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 			if (pt == null) {
 				// TODO check if the ID is local -> not allowed!
-				if (pkt.getThreadId().isSameClient(this.getLocalURI())) {
-					logger.error("Received foreign thread with unknown local ID!");
-					// TODO send error message and abort
-				} else {
+				/*
+				 * if (pkt.getThreadId().isSameClient(this.getLocalURI())) {
+				 * logger
+				 * .error("Received foreign thread with unknown local ID!"); //
+				 * TODO send error message and abort } else
+				 */{
 					logger.debug("Creating new packet thread with ID "
 							+ pkt.getThreadId());
 					final XMPPConn con = (XMPPConn) transport.getConnection(pkt
@@ -329,7 +330,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 			if (connection != null) {
 				// dispose the threads
-				for (XMPPThreadId id : this.threads.getThreadIDs()) {
+				for (String id : this.threads.getThreadIDs()) {
 					final PacketThread pt = this.threads.retrieveThread(id);
 					if (pt != null)
 						pt.dispose();

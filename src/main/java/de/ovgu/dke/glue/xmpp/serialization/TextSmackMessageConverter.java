@@ -22,7 +22,6 @@
 package de.ovgu.dke.glue.xmpp.serialization;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.jivesoftware.smack.packet.Message;
 
@@ -31,7 +30,6 @@ import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
-import de.ovgu.dke.glue.xmpp.transport.thread.XMPPThreadId;
 
 public class TextSmackMessageConverter implements SmackMessageConverter {
 	protected static String URI_PREFIX = "xmpp:";
@@ -67,7 +65,7 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 	@Override
 	public XMPPPacket fromSmack(Message msg) throws SerializationException {
 		String body = msg.getBody();
-		XMPPThreadId id = null;
+		String id = null;
 		String schema = null;
 
 		String _id = null;
@@ -89,13 +87,8 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 			}
 		}
 
-		if (_id != null)
-			try {
-				id = XMPPThreadId.fromString(_id);
-			} catch (URISyntaxException e) {
-				throw new SerializationException(
-						"Invalid URI syntax in thread ID: " + _id, e);
-			}
+		// TODO check ID syntax
+		id = _id;
 
 		// second line: schema
 		if (body != null) {

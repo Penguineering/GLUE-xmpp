@@ -4,7 +4,7 @@
 	
 	<groupId>de.ovgu.dke.glue</groupId>
 	<artifactId>glue-xmpp</artifactId>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.3.0-shaun-SNAPSHOT</version>
 	
 	<name>glue-xmpp</name>
 	<description>
@@ -91,7 +91,7 @@
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-core</artifactId>
-			<version>0.2.2</version>
+			<version>0.3.0-shaun-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>de.ovgu.dke.glue</groupId>
 			<artifactId>glue-util</artifactId>
-			<version>0.2.2</version>
+			<version>0.3.0-shaun-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

@@ -118,7 +118,7 @@ public class XMPPTransport implements Transport {
 
 	public void disposeThread(PacketThread thread) {
 		if (thread != null)
-			threads.removeThread(((XMPPPacketThread) thread).getId());
+			threads.removeThread(thread.getId());
 	}
 
 	/**

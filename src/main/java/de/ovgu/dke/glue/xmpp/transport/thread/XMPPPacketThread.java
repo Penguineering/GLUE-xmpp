@@ -32,24 +32,15 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 //TODO synchronization
 public class XMPPPacketThread extends PacketThread {
 
-	// Immutable
-	private final XMPPThreadId id;
-
 	private PacketHandler handler;
 
-	public XMPPPacketThread(XMPPConn connection, XMPPThreadId id,
+	public XMPPPacketThread(XMPPConn connection, String id,
 			PacketHandler handler) throws TransportException {
-		super(connection);
+		super(connection, id.toString());
 
-		if (id == null)
-			throw new NullPointerException("Packet thread id may not be null!");
-		this.id = id;
-
+		// if (id == null)
+		// throw new NullPointerException("Packet thread id may not be null!");
 		this.handler = handler;
-	}
-
-	public XMPPThreadId getId() {
-		return id;
 	}
 
 	/**
@@ -57,7 +48,7 @@ public class XMPPPacketThread extends PacketThread {
 	 */
 	@Override
 	public String toString() {
-		return id.toString();
+		return this.getId();
 	}
 
 	public PacketHandler getHandler() {
@@ -93,7 +84,8 @@ public class XMPPPacketThread extends PacketThread {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result
+				+ ((this.getId() == null) ? 0 : this.getId().hashCode());
 		return result;
 	}
 
@@ -106,10 +98,10 @@ public class XMPPPacketThread extends PacketThread {
 		if (getClass() != obj.getClass())
 			return false;
 		XMPPPacketThread other = (XMPPPacketThread) obj;
-		if (id == null) {
-			if (other.id != null)
+		if (this.getId() == null) {
+			if (other.getId() != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!this.getId().equals(other.getId()))
 			return false;
 		return true;
 	}

@@ -118,4 +118,10 @@ public class XMPPTransportFactory implements TransportFactory {
 		if (client != null)
 			client.removeLifecycleListener(listener);
 	}
+
+	@Override
+	public boolean servesPeer(URI peer, String schema) {
+		// TODO may be more sophisticated
+		return peer.getScheme().equals("xmpp");
+	}
 }
