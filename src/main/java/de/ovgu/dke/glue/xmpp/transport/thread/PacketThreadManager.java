@@ -21,6 +21,7 @@
  */
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -35,8 +36,30 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
 
 public class PacketThreadManager implements ThreadIDGenerator {
-	private final Map<String, XMPPPacketThread> threads;
+	/**
+	 * Check if the ID is local to the jid.
+	 * 
+	 * @param id
+	 *            The packet thread ID to be checked
+	 * @param jid
+	 *            Local Jabber ID
+	 * @return true if the packet thread ID is local.
+	 * @throws NullPointerException
+	 *             if one of the arguments is null
+	 * @throws IllegalArgumentException
+	 *             if the ID argument is not a valid XMPP packet thread ID
+	 */
+	public static boolean isLocalID(String id, URI jid) {
+		final int _idx = id.lastIndexOf(':');
+		if (_idx < 0)
+			throw new IllegalArgumentException(
+					"Missing \":\" in packet thread ID!");
+		URI local_jid = URI.create(id.substring(0, _idx));
 
+		return jid.equals(local_jid);
+	}
+
+	private final Map<String, XMPPPacketThread> threads;
 	private final ThreadIDGenerator generator;
 
 	public PacketThreadManager(final ThreadIDGenerator generator) {

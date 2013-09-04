@@ -238,12 +238,11 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 			if (pt == null) {
 				// TODO check if the ID is local -> not allowed!
-				/*
-				 * if (pkt.getThreadId().isSameClient(this.getLocalURI())) {
-				 * logger
-				 * .error("Received foreign thread with unknown local ID!"); //
-				 * TODO send error message and abort } else
-				 */{
+				if (PacketThreadManager.isLocalID(pkt.getThreadId(),
+						this.getLocalURI())) {
+					logger.error("Received foreign thread with unknown local ID!");
+					// TODO send error message and abort
+				} else {
 					logger.debug("Creating new packet thread with ID "
 							+ pkt.getThreadId());
 					final XMPPConn con = (XMPPConn) transport.getConnection(pkt

@@ -31,7 +31,6 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 
 //TODO synchronization
 public class XMPPPacketThread extends PacketThread {
-
 	private PacketHandler handler;
 
 	public XMPPPacketThread(XMPPConn connection, String id,
@@ -58,7 +57,7 @@ public class XMPPPacketThread extends PacketThread {
 	public void setHandler(PacketHandler handler) {
 		this.handler = handler;
 	}
-
+	
 	@Override
 	public void dispose() {
 		((XMPPConn) getConnection()).disposeThread(this);
