@@ -33,6 +33,8 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
 public interface SmackMessageConverter {
+	public String getSchema(final Message msg) throws SerializationException;
+	
 	/**
 	 * Create a smack packet from an XMPP packet with serialized payload.
 	 * 
@@ -59,6 +61,6 @@ public interface SmackMessageConverter {
 	 * @throws SerializationException
 	 *             If de-serialization fails.
 	 */
-	public XMPPPacket fromSmack(final Message msg)
+	public XMPPPacket fromSmack(final Message msg, Serializer serializer)
 			throws SerializationException;
 }

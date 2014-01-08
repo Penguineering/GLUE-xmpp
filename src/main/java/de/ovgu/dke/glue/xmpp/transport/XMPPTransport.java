@@ -29,6 +29,7 @@ import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.endpoint.Endpoint;
 import de.ovgu.dke.glue.api.serialization.SerializationException;
+import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
@@ -77,17 +78,17 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public Connection getConnection(String schema) throws TransportException {
-		return new XMPPConn(schema, this);
+	public Connection getConnection(Endpoint endpoint)
+			throws TransportException {
+		return new XMPPConn(endpoint, this);
 	}
 
-	public PacketThread createThread(final Endpoint endpoint,
-			final XMPPConn con, final PacketHandler handler)
-			throws TransportException {
+	public PacketThread createThread(final XMPPConn con,
+			final PacketHandler handler) throws TransportException {
 		try {
 			PacketHandler hnd = handler;
 			if (hnd == null) {
-				PacketHandlerFactory factory = endpoint
+				PacketHandlerFactory factory = con.getEndpoint()
 						.getPacketHandlerFactory();
 				if (factory != null)
 					hnd = factory.createPacketHandler();
@@ -97,7 +98,7 @@ public class XMPPTransport implements Transport {
 				throw new TransportException(
 						"Invalid value for packet handler: null!");
 
-			return threads.createThread(endpoint, con, hnd);
+			return threads.createThread(con, hnd);
 		} catch (InstantiationException e) {
 			throw new TransportException(
 					"Could not instantiate packet handler: " + e.getMessage(),
@@ -130,13 +131,13 @@ public class XMPPTransport implements Transport {
 					+ " is not registered on this transport!");
 
 		try {
+			// TODO aufräumen!
 			// get the serializer
-			Serializer ser = lt.getEndpoint().getSerializationProvider()
+			Serializer ser = con.getEndpoint().getSerializationProvider()
 					.getSerializer(con.getSerializationFormat());
 
 			// create an XMPP message
-			SmackMessageConverter conv = new TextSmackMessageConverter(lt
-					.getEndpoint().getSerializationProvider());
+			SmackMessageConverter conv = new TextSmackMessageConverter();
 
 			// log message content
 			if (log.isDebugEnabled())
@@ -162,9 +163,14 @@ public class XMPPTransport implements Transport {
 			XMPPPacket pkt = null;
 
 			// get the converter
-			SmackMessageConverter conv = new TextSmackMessageConverter(client
-					.getDefaultEndpoint().getSerializationProvider());
-			pkt = conv.fromSmack(msg);
+			SmackMessageConverter conv = new TextSmackMessageConverter();
+
+			String schema = conv.getSchema(msg);
+			pkt = conv.fromSmack(
+					msg,
+					client.getDefaultEndpoint(schema)
+							.getSerializationProvider()
+							.getSerializer(SerializationProvider.STRING));
 
 			if (pkt.getThreadId() == null)
 				throw new TransportException(
@@ -246,8 +252,8 @@ public class XMPPTransport implements Transport {
 	}
 
 	@Override
-	public Endpoint getDefaultEndpoint() {
-		return client.getDefaultEndpoint();
+	public Endpoint getDefaultEndpoint(String schema) {
+		return client.getDefaultEndpoint(schema);
 	}
 
 }

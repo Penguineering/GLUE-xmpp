@@ -55,8 +55,7 @@ public class XMPPTransportFactory implements TransportFactory {
 	 *            the standards paths.
 	 */
 	@Override
-	public void init(final Properties config, Endpoint defaultEndpoint)
-			throws TransportException {
+	public void init(final Properties config) throws TransportException {
 		try {
 			// The XMPP configuration is loaded directly from the properties, if
 			// sufficient, otherwise the file loading mechanism is used.
@@ -67,7 +66,7 @@ public class XMPPTransportFactory implements TransportFactory {
 				final XMPPConfigurationLoader confLoader = new XMPPPropertiesConfigurationLoader();
 				xmpp_conf = confLoader.loadConfiguration(config);
 			}
-			this.client = new XMPPClient(xmpp_conf, defaultEndpoint);
+			this.client = new XMPPClient(xmpp_conf);
 
 			this.client.startup();
 		} catch (ConfigurationException e) {
@@ -125,5 +124,12 @@ public class XMPPTransportFactory implements TransportFactory {
 	public boolean servesPeer(URI peer, String schema) {
 		// TODO may be more sophisticated
 		return peer.getScheme().equals("xmpp");
+		// && defaultEndpoints.keySet().contains(schema); ?
 	}
+
+	@Override
+	public void addDefaultEndpoint(Endpoint defaultEndpoint) {
+		client.addDefaultEndpoint(defaultEndpoint);
+	}
+
 }

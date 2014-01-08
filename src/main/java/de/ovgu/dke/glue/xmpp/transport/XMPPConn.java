@@ -34,8 +34,8 @@ import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
 public class XMPPConn implements Connection {
-	private final String connection_schema;
 	final XMPPTransport transport;
+	final Endpoint endpoint;
 
 	/**
 	 * This reflects the last known peer's JID, including a resource. The id
@@ -44,22 +44,22 @@ public class XMPPConn implements Connection {
 	 */
 	private URI effective_jid;
 
-	public XMPPConn(final String connectionSchema, final XMPPTransport transport) {
-		this.connection_schema = connectionSchema;
+	public XMPPConn(final Endpoint endpoint, final XMPPTransport transport) {
 		this.transport = transport;
+		this.endpoint = endpoint;
 
 		this.effective_jid = transport.getPeer();
 	}
 
-	/**
-	 * Get the connection schema for this connection, which must be set upon
-	 * creation and cannot be changed.
-	 * 
-	 * @return The serialization schema, which cannot be {@code null}
-	 */
 	@Override
-	public final String getConnectionSchema() {
-		return connection_schema;
+	public Endpoint getEndpoint() {
+		return endpoint;
+	}
+
+	@Override
+	public String getSerializationFormat() {
+		// TODO later: make this according to client capabilities
+		return SerializationProvider.STRING;
 	}
 
 	public URI getEffectiveJID() {
@@ -75,9 +75,9 @@ public class XMPPConn implements Connection {
 	}
 
 	@Override
-	public PacketThread createThread(Endpoint endpoint, PacketHandler handler)
+	public PacketThread createThread(PacketHandler handler)
 			throws TransportException {
-		return transport.createThread(endpoint, this, handler);
+		return transport.createThread(this, handler);
 	}
 
 	@Override
@@ -97,8 +97,8 @@ public class XMPPConn implements Connection {
 	public XMPPPacket createPacket(XMPPPacketThread pt, Object payload,
 			Packet.Priority priority) throws TransportException {
 		return new XMPPPacket(payload, priority, transport.getClient()
-				.getLocalURI(), getEffectiveJID(), pt.getId(), pt.getEndpoint()
-				.getSchema());
+				.getLocalURI(), getEffectiveJID(), pt.getId(), pt
+				.getConnection().getEndpoint().getSchema());
 	}
 
 	@Override
@@ -107,11 +107,4 @@ public class XMPPConn implements Connection {
 		// TODO returning true while capabilities are not really negotiated
 		return true;
 	}
-
-	@Override
-	public String getSerializationFormat() {
-		// TODO later: make this according to client capabilities
-		return SerializationProvider.STRING;
-	}
-
 }

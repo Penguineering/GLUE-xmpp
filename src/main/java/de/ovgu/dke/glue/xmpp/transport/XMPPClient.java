@@ -24,6 +24,7 @@ package de.ovgu.dke.glue.xmpp.transport;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -65,12 +66,12 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 	private final XMPPConfiguration xmppconfig;
 
-	private final Endpoint defaultEndpoint;
-
 	private final ReportListenerSupport report_listeners;
 	private final Collection<TransportLifecycleListener> lifecycle_listeners;
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
+
+	private final Map<String, Endpoint> defaultEndpoints;
 
 	private PacketThreadManager threads;
 
@@ -118,18 +119,18 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	 * @throws NullPointerException
 	 *             if the <code>config</code> parameter is <code>null</code>.
 	 */
-	public XMPPClient(final XMPPConfiguration config, Endpoint defaultEndpoint) {
+	public XMPPClient(final XMPPConfiguration config) {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
 		this.xmppconfig = config;
-
-		this.defaultEndpoint = defaultEndpoint;
 
 		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<TransportLifecycleListener>();
 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 		this.threads = null;
+
+		this.defaultEndpoints = new ConcurrentHashMap<String, Endpoint>();
 	}
 
 	/**
@@ -250,14 +251,15 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 					logger.debug("Creating new packet thread with ID "
 							+ pkt.getThreadId());
 					// aus dem Default-Endpoint holen
-					final Endpoint endpoint = transport.getDefaultEndpoint();
-
-					final XMPPConn con = (XMPPConn) transport.getConnection(pkt
+					final Endpoint endpoint = transport.getDefaultEndpoint(pkt
 							.getSchema());
+
+					final XMPPConn con = (XMPPConn) transport
+							.getConnection(endpoint);
 					final PacketHandlerFactory phf = endpoint
 							.getPacketHandlerFactory();
 
-					pt = (XMPPPacketThread) threads.addThread(endpoint, con,
+					pt = (XMPPPacketThread) threads.addThread(con,
 							pkt.getThreadId(), phf.createPacketHandler());
 				}
 			}
@@ -429,7 +431,12 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		}
 	}
 
-	public Endpoint getDefaultEndpoint() {
-		return defaultEndpoint;
+	public void addDefaultEndpoint(Endpoint defaultEndpoint) {
+		defaultEndpoints.put(defaultEndpoint.getSchema(), defaultEndpoint);
 	}
+
+	public Endpoint getDefaultEndpoint(String schema) {
+		return defaultEndpoints.get(schema);
+	}
+
 }

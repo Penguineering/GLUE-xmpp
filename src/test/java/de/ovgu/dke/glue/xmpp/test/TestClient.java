@@ -24,19 +24,14 @@ package de.ovgu.dke.glue.xmpp.test;
 import java.io.IOException;
 import java.net.URI;
 
-import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
-import de.ovgu.dke.glue.api.transport.SchemaRecord;
-import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportRegistry;
-import de.ovgu.dke.glue.util.serialization.NullSerializer;
-import de.ovgu.dke.glue.util.serialization.SingleSerializerProvider;
 
 public class TestClient {
 	public static void main(String args[]) throws TransportException,
@@ -47,13 +42,14 @@ public class TestClient {
 				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory", null,
 				TransportRegistry.AS_DEFAULT, TransportRegistry.DEFAULT_KEY);
 
-		// register the "middle-ware"
-		SchemaRegistry.getInstance().registerSchemaRecord(
-				SchemaRecord.valueOf(
-						"http://dke.ovgu.de/glue/xmpp/test",
-						new EchoPacketHandlerFactory(),
-						SingleSerializerProvider.of(NullSerializer
-								.of(SerializationProvider.STRING))));
+		// TODO register the "middle-ware"
+		/*
+		 * SchemaRegistry.getInstance().registerSchemaRecord(
+		 * SchemaRecord.valueOf( "http://dke.ovgu.de/glue/xmpp/test", new
+		 * EchoPacketHandlerFactory(),
+		 * SingleSerializerProvider.of(NullSerializer
+		 * .of(SerializationProvider.STRING))));
+		 */
 
 		// get a transport
 		final Transport xmpp = TransportRegistry.getDefaultTransportFactory()
@@ -61,8 +57,7 @@ public class TestClient {
 						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		// create a connection
-		final Connection con = xmpp
-				.getConnection("http://dke.ovgu.de/glue/xmpp/test");
+		final Connection con = xmpp.getConnection(null);
 
 		// create a packet thread
 		final PacketThread thread = con

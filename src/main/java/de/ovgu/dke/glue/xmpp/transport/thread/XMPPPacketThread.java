@@ -21,7 +21,6 @@
  */
 package de.ovgu.dke.glue.xmpp.transport.thread;
 
-import de.ovgu.dke.glue.api.endpoint.Endpoint;
 import de.ovgu.dke.glue.api.transport.Packet.Priority;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
@@ -34,9 +33,9 @@ import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 public class XMPPPacketThread extends PacketThread {
 	private PacketHandler handler;
 
-	public XMPPPacketThread(Endpoint endpoint, XMPPConn connection, String id,
+	public XMPPPacketThread(XMPPConn connection, String id,
 			PacketHandler handler) throws TransportException {
-		super(endpoint, connection, id.toString());
+		super(connection, id.toString());
 
 		// if (id == null)
 		// throw new NullPointerException("Packet thread id may not be null!");

@@ -26,19 +26,11 @@ import java.net.URI;
 import org.jivesoftware.smack.packet.Message;
 
 import de.ovgu.dke.glue.api.serialization.SerializationException;
-import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.serialization.Serializer;
 import de.ovgu.dke.glue.xmpp.transport.XMPPPacket;
 
 public class TextSmackMessageConverter implements SmackMessageConverter {
 	protected static String URI_PREFIX = "xmpp:";
-
-	private final SerializationProvider serializationProvider;
-
-	public TextSmackMessageConverter(SerializationProvider serializationProvider) {
-		super();
-		this.serializationProvider = serializationProvider;
-	}
 
 	@Override
 	public Message toSmack(XMPPPacket pkt, Serializer serializer)
@@ -69,7 +61,48 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 	}
 
 	@Override
-	public XMPPPacket fromSmack(Message msg) throws SerializationException {
+	public String getSchema(Message msg) throws SerializationException {
+		String body = msg.getBody();
+		String schema = null;
+
+		// first line: thread id
+		if (body != null) {
+			// take the first line from payload
+			int br_idx = body.indexOf('\n');
+			if (br_idx >= 0) {
+				if (body.length() > br_idx)
+					body = body.substring(br_idx + 1);
+				else
+					body = null;
+			} else if (br_idx < 0) {
+				body = null;
+			}
+		}
+
+		// second line: schema
+		if (body != null) {
+			int br_idx = body.indexOf('\n');
+			if (br_idx > 0) {
+				schema = body.substring(0, br_idx);
+				if (body.length() > br_idx)
+					body = body.substring(br_idx + 1);
+				else
+					body = null;
+			} else if (br_idx == 0) {
+				schema = null;
+			} else {
+				schema = body;
+				body = null;
+			}
+
+		}
+
+		return schema;
+	}
+
+	@Override
+	public XMPPPacket fromSmack(Message msg, Serializer serializer)
+			throws SerializationException {
 		String body = msg.getBody();
 		String id = null;
 		String schema = null;
@@ -112,23 +145,6 @@ public class TextSmackMessageConverter implements SmackMessageConverter {
 				body = null;
 			}
 
-		}
-
-		// TODO anpassen
-		// retrieve the serializer
-		Serializer serializer = null;
-		if (schema != null) {
-			if (serializationProvider == null)
-				throw new SerializationException(
-						"No serialization provider available to resolve schema \""
-								+ schema + "\"!");
-
-			serializer = serializationProvider
-					.getSerializer(SerializationProvider.STRING);
-			if (serializer == null)
-				throw new SerializationException(
-						"Cannot find serializer for schema \"" + schema
-								+ "\" (format STRING)!");
 		}
 
 		// next lines: payload

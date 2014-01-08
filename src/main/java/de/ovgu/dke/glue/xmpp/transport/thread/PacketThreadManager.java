@@ -27,11 +27,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import de.ovgu.dke.glue.api.endpoint.Endpoint;
 import de.ovgu.dke.glue.api.transport.PacketHandler;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.xmpp.serialization.CapabilitiesSerializer;
 import de.ovgu.dke.glue.xmpp.transport.XMPPConn;
 import de.ovgu.dke.glue.xmpp.transport.XMPPTransport;
 import de.ovgu.dke.glue.xmpp.transport.capabilities.CapabilitiesPacketHandler;
@@ -104,11 +102,10 @@ public class PacketThreadManager implements ThreadIDGenerator {
 	 * @return
 	 * @throws TransportException
 	 */
-	public PacketThread addThread(Endpoint endpoint, XMPPConn connection,
-			String id, PacketHandler handler) throws TransportException {
+	public PacketThread addThread(XMPPConn connection, String id,
+			PacketHandler handler) throws TransportException {
 		// create packet thread
-		XMPPPacketThread pt = new XMPPPacketThread(endpoint, connection, id,
-				handler);
+		XMPPPacketThread pt = new XMPPPacketThread(connection, id, handler);
 
 		// register packet thread
 		this.registerThread(pt);
@@ -116,12 +113,12 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		return pt;
 	}
 
-	public PacketThread createThread(Endpoint endpoint, XMPPConn connection,
-			PacketHandler handler) throws TransportException {
+	public PacketThread createThread(XMPPConn connection, PacketHandler handler)
+			throws TransportException {
 		// generate id
 		final String id = this.generateThreadID();
 
-		return addThread(endpoint, connection, id, handler);
+		return addThread(connection, id, handler);
 	}
 
 	public PacketThread createMetaThread(XMPPTransport transport)
@@ -132,11 +129,9 @@ public class PacketThreadManager implements ThreadIDGenerator {
 		// TODO capabilities packet handler
 		final PacketHandler handler = new CapabilitiesPacketHandler();
 
-		final XMPPConn con = (XMPPConn) transport
-				.getConnection(CapabilitiesSerializer.SCHEMA);
-
-		// TODO this can be done via schema registry
 		// TODO which endpoint?
-		return addThread(null, con, id, handler);
+		final XMPPConn con = (XMPPConn) transport.getConnection(null);
+
+		return addThread(con, id, handler);
 	}
 }
