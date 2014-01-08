@@ -23,6 +23,7 @@ package de.ovgu.dke.glue.xmpp.transport;
 
 import java.net.URI;
 
+import de.ovgu.dke.glue.api.endpoint.Endpoint;
 import de.ovgu.dke.glue.api.serialization.SerializationProvider;
 import de.ovgu.dke.glue.api.transport.Connection;
 import de.ovgu.dke.glue.api.transport.Packet;
@@ -74,9 +75,9 @@ public class XMPPConn implements Connection {
 	}
 
 	@Override
-	public PacketThread createThread(PacketHandler handler)
+	public PacketThread createThread(Endpoint endpoint, PacketHandler handler)
 			throws TransportException {
-		return transport.createThread(this, handler);
+		return transport.createThread(endpoint, this, handler);
 	}
 
 	@Override
@@ -96,8 +97,8 @@ public class XMPPConn implements Connection {
 	public XMPPPacket createPacket(XMPPPacketThread pt, Object payload,
 			Packet.Priority priority) throws TransportException {
 		return new XMPPPacket(payload, priority, transport.getClient()
-				.getLocalURI(), getEffectiveJID(), pt.getId(),
-				this.getConnectionSchema());
+				.getLocalURI(), getEffectiveJID(), pt.getId(), pt.getEndpoint()
+				.getSchema());
 	}
 
 	@Override

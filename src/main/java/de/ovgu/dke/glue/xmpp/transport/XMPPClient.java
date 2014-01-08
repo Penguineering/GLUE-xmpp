@@ -38,12 +38,12 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
+import de.ovgu.dke.glue.api.endpoint.Endpoint;
 import de.ovgu.dke.glue.api.reporting.ReportListener;
 import de.ovgu.dke.glue.api.reporting.ReportListenerSupport;
 import de.ovgu.dke.glue.api.reporting.Reporter;
 import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
-import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.api.transport.TransportLifecycleListener;
@@ -64,6 +64,8 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	static Log logger = LogFactory.getLog(XMPPClient.class);
 
 	private final XMPPConfiguration xmppconfig;
+
+	private final Endpoint defaultEndpoint;
 
 	private final ReportListenerSupport report_listeners;
 	private final Collection<TransportLifecycleListener> lifecycle_listeners;
@@ -116,10 +118,12 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	 * @throws NullPointerException
 	 *             if the <code>config</code> parameter is <code>null</code>.
 	 */
-	public XMPPClient(final XMPPConfiguration config) {
+	public XMPPClient(final XMPPConfiguration config, Endpoint defaultEndpoint) {
 		if (config == null)
 			throw new NullPointerException("Configuration may not be null!");
 		this.xmppconfig = config;
+
+		this.defaultEndpoint = defaultEndpoint;
 
 		this.report_listeners = new ReportListenerSupport(this);
 		this.lifecycle_listeners = new LinkedList<TransportLifecycleListener>();
@@ -245,13 +249,15 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 				} else {
 					logger.debug("Creating new packet thread with ID "
 							+ pkt.getThreadId());
+					// aus dem Default-Endpoint holen
+					final Endpoint endpoint = transport.getDefaultEndpoint();
+
 					final XMPPConn con = (XMPPConn) transport.getConnection(pkt
 							.getSchema());
-					final PacketHandlerFactory phf = SchemaRegistry
-							.getInstance().getPacketHandlerFactory(
-									pkt.getSchema());
+					final PacketHandlerFactory phf = endpoint
+							.getPacketHandlerFactory();
 
-					pt = (XMPPPacketThread) threads.addThread(con,
+					pt = (XMPPPacketThread) threads.addThread(endpoint, con,
 							pkt.getThreadId(), phf.createPacketHandler());
 				}
 			}
@@ -421,5 +427,9 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 			for (final TransportLifecycleListener listener : lifecycle_listeners)
 				listener.onStatusChange(transport, oldStatus, newStatus);
 		}
+	}
+
+	public Endpoint getDefaultEndpoint() {
+		return defaultEndpoint;
 	}
 }
