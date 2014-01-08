@@ -71,11 +71,13 @@ public class XMPPTransport implements Transport {
 		this.threads = threads;
 
 		// register as middleware to handle capabilities
-		final SchemaRecord record = SchemaRecord.valueOf(
-				CapabilitiesSerializer.SCHEMA, SingletonPacketHandlerFactory
-						.valueOf(new CapabilitiesPacketHandler()),
-				SingleSerializerProvider.of(new TextCapabilitiesSerializer()));
-		SchemaRegistry.getInstance().registerSchemaRecord(record);
+		/*
+		 * final SchemaRecord record = SchemaRecord.valueOf(
+		 * CapabilitiesSerializer.SCHEMA, SingletonPacketHandlerFactory
+		 * .valueOf(new CapabilitiesPacketHandler()),
+		 * SingleSerializerProvider.of(new TextCapabilitiesSerializer()));
+		 * SchemaRegistry.getInstance().registerSchemaRecord(record);
+		 */
 
 		this.converter = new TextSmackMessageConverter();
 	}
@@ -218,51 +220,45 @@ public class XMPPTransport implements Transport {
 		return true;
 	}
 
-	public boolean checkCapabilities(final String schema)
-			throws TransportException {
+	public boolean checkCapabilities(final String schema) {
 		// TODO das muss ausgehandelt werden!
-		try {
-			final Serializer cap_ser = SchemaRegistry.getInstance()
-					.getSerializationProvider(CapabilitiesSerializer.SCHEMA)
-					.getSerializer(SerializationProvider.STRING);
-
-			final List<SerializationCapability> caps = SerializationCapability
-					.retrieveSerializationCapabilities();
-
-			// serializers message
-			final Object payload = cap_ser.serialize(caps);
-
-			// send to peer
-			final XMPPPacketThread meta = (XMPPPacketThread) threads
-					.createMetaThread(this);
-
-			// create an XMPP message
-			SmackMessageConverter conv = this.getConverter();
-
-			XMPPConn con = (XMPPConn) getConnection(CapabilitiesSerializer.SCHEMA);
-
-			final Message msg = conv.toSmack(
-					con.createPacket(meta, payload, Packet.Priority.HIGH),
-					cap_ser);
-			client.enqueuePacket(msg);
-
-			// TODO wait for response
-
-			// TODO check matching
-
-			// TODO respond accordingly
-
-			return true;
-
-		} catch (InterruptedException e) {
-			throw new TransportException(
-					"Error sending XMPP capabilities packet: " + e.getMessage(),
-					e);
-		} catch (SerializationException e) {
-			throw new TransportException(
-					"Error converting XMPP capabilities packet: "
-							+ e.getMessage(), e);
-		}
+		/*
+		 * try { final Serializer cap_ser = SchemaRegistry.getInstance()
+		 * .getSerializationProvider(CapabilitiesSerializer.SCHEMA)
+		 * .getSerializer(SerializationProvider.STRING);
+		 * 
+		 * final List<SerializationCapability> caps = SerializationCapability
+		 * .retrieveSerializationCapabilities();
+		 * 
+		 * // serializers message final Object payload =
+		 * cap_ser.serialize(caps);
+		 * 
+		 * // send to peer final XMPPPacketThread meta = (XMPPPacketThread)
+		 * threads .createMetaThread(this);
+		 * 
+		 * // create an XMPP message SmackMessageConverter conv =
+		 * this.getConverter();
+		 * 
+		 * XMPPConn con = (XMPPConn)
+		 * getConnection(CapabilitiesSerializer.SCHEMA);
+		 * 
+		 * final Message msg = conv.toSmack( con.createPacket(meta, payload,
+		 * Packet.Priority.HIGH), cap_ser); client.enqueuePacket(msg);
+		 * 
+		 * // TODO wait for response
+		 * 
+		 * // TODO check matching
+		 * 
+		 * // TODO respond accordingly
+		 * 
+		 * return true;
+		 * 
+		 * } catch (InterruptedException e) { throw new TransportException(
+		 * "Error sending XMPP capabilities packet: " + e.getMessage(), e); }
+		 * catch (SerializationException e) { throw new TransportException(
+		 * "Error converting XMPP capabilities packet: " + e.getMessage(), e); }
+		 */
+		return true;
 	}
 
 }

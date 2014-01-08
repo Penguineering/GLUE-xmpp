@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.jcip.annotations.Immutable;
-import de.ovgu.dke.glue.api.serialization.SerializationProvider;
-import de.ovgu.dke.glue.api.transport.SchemaRegistry;
 
 /**
  * A serialization capability entry consisting of format and schema.
@@ -87,13 +85,13 @@ public class SerializationCapability {
 	public static List<SerializationCapability> retrieveSerializationCapabilities() {
 		final List<SerializationCapability> result = new ArrayList<SerializationCapability>();
 
-		for (final String schema : SchemaRegistry.getInstance()
+/*		for (final String schema : SchemaRegistry.getInstance()
 				.getAvailableSchemas()) {
 			final SerializationProvider prov = SchemaRegistry.getInstance()
 					.getSerializationProvider(schema);
 			for (final String format : prov.availableFormats())
 				result.add(new SerializationCapability(format, schema));
-		}
+		}*/
 
 		return result;
 	}
