@@ -168,7 +168,7 @@ public class XMPPTransport implements Transport {
 			String schema = conv.getSchema(msg);
 			pkt = conv.fromSmack(
 					msg,
-					client.getDefaultEndpoint(schema)
+					client.getInboundEndpoint(schema)
 							.getSerializationProvider()
 							.getSerializer(SerializationProvider.STRING));
 
@@ -253,7 +253,7 @@ public class XMPPTransport implements Transport {
 
 	@Override
 	public Endpoint getDefaultEndpoint(String schema) {
-		return client.getDefaultEndpoint(schema);
+		return client.getInboundEndpoint(schema);
 	}
 
 }

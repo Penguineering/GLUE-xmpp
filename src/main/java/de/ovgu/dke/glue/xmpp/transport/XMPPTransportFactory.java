@@ -128,8 +128,8 @@ public class XMPPTransportFactory implements TransportFactory {
 	}
 
 	@Override
-	public void addDefaultEndpoint(Endpoint defaultEndpoint) {
-		client.addDefaultEndpoint(defaultEndpoint);
+	public void addInboundEndpoint(Endpoint inboundEndpoint) {
+		client.addInboundEndpoint(inboundEndpoint);
 	}
 
 }

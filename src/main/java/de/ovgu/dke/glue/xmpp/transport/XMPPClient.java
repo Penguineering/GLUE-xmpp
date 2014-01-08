@@ -71,7 +71,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 
 	private final ConcurrentMap<URI, XMPPTransport> transports;
 
-	private final Map<String, Endpoint> defaultEndpoints;
+	private final Map<String, Endpoint> inboundEndpoints;
 
 	private PacketThreadManager threads;
 
@@ -130,7 +130,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		this.transports = new ConcurrentHashMap<URI, XMPPTransport>();
 		this.threads = null;
 
-		this.defaultEndpoints = new ConcurrentHashMap<String, Endpoint>();
+		this.inboundEndpoints = new ConcurrentHashMap<String, Endpoint>();
 	}
 
 	/**
@@ -431,12 +431,12 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 		}
 	}
 
-	public void addDefaultEndpoint(Endpoint defaultEndpoint) {
-		defaultEndpoints.put(defaultEndpoint.getSchema(), defaultEndpoint);
+	public void addInboundEndpoint(Endpoint inboundEndpoint) {
+		inboundEndpoints.put(inboundEndpoint.getSchema(), inboundEndpoint);
 	}
 
-	public Endpoint getDefaultEndpoint(String schema) {
-		return defaultEndpoints.get(schema);
+	public Endpoint getInboundEndpoint(String schema) {
+		return inboundEndpoints.get(schema);
 	}
 
 }
