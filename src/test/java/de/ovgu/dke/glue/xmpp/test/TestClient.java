@@ -31,16 +31,16 @@ import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
-import de.ovgu.dke.glue.api.transport.TransportRegistry;
+import de.ovgu.dke.glue.api.transport.TransportFactory;
+import de.ovgu.dke.glue.util.transport.TransportUtils;
 
 public class TestClient {
 	public static void main(String args[]) throws TransportException,
 			IOException, ClassNotFoundException {
 
 		// initialize and register transport factory
-		TransportRegistry.getInstance().loadTransportFactory(
-				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory", null,
-				TransportRegistry.AS_DEFAULT, TransportRegistry.DEFAULT_KEY);
+		final TransportFactory xmppTF = TransportUtils.loadTransportFactory(
+				"de.ovgu.dke.glue.xmpp.transport.XMPPTransportFactory", null);
 
 		// TODO register the "middle-ware"
 		/*
@@ -52,9 +52,8 @@ public class TestClient {
 		 */
 
 		// get a transport
-		final Transport xmpp = TransportRegistry.getDefaultTransportFactory()
-				.createTransport(
-						URI.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
+		final Transport xmpp = xmppTF.createTransport(URI
+				.create("xmpp:shaun@bison.cs.uni-magdeburg.de"));
 
 		// create a connection
 		final Connection con = xmpp.getConnection(null);
@@ -74,7 +73,7 @@ public class TestClient {
 		thread.dispose();
 
 		// dispose the transport factory
-		TransportRegistry.getInstance().disposeAll();
+		xmppTF.dispose();
 	}
 }
 
