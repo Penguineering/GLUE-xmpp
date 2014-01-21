@@ -56,8 +56,8 @@ import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 /**
  * XMPP Client to receive and evaluate XMPP requests.
  * 
- * Uses <code>m_conn_lock</code> for internal thread synchronization on
- * connection access.
+ * <p>Uses <code>m_conn_lock</code> for internal thread synchronization on
+ * connection access.</p>
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
@@ -224,7 +224,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	}
 
 	@Override
-	// TODO wohin mit den Fehlermeldungen?
+	// TODO wohin mit den Fehlermeldungen? -> Reporting
 	public void processPacket(final Packet packet) {
 		if ((packet == null) || !(packet instanceof Message))
 			return;

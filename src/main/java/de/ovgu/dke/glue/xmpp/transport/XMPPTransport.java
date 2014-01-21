@@ -58,15 +58,6 @@ public class XMPPTransport implements Transport {
 		this.client = client;
 
 		this.threads = threads;
-
-		// register as middleware to handle capabilities
-		/*
-		 * final SchemaRecord record = SchemaRecord.valueOf(
-		 * CapabilitiesSerializer.SCHEMA, SingletonPacketHandlerFactory
-		 * .valueOf(new CapabilitiesPacketHandler()),
-		 * SingleSerializerProvider.of(new TextCapabilitiesSerializer()));
-		 * SchemaRegistry.getInstance().registerSchemaRecord(record);
-		 */
 	}
 
 	public final URI getPeer() {
@@ -163,6 +154,7 @@ public class XMPPTransport implements Transport {
 			XMPPPacket pkt = null;
 
 			// get the converter
+			// TODO retrieve this from global registry
 			SmackMessageConverter conv = new TextSmackMessageConverter();
 
 			String schema = conv.getSchema(msg);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Stefan Haun, Thomas Low, Sebastian Stober, Andreas Nürnberger
+ * Copyright 2012-2014 Stefan Haun, Thomas Low, Sebastian Stober, Andreas Nürnberger
  * 
  *      Data and Knowledge Engineering Group, 
  * 		Faculty of Computer Science,
@@ -33,6 +33,12 @@ import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
 import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 
+/**
+ * XMPP implementation of a Connection.
+ * 
+ * @author Stefan Haun (stefan.haun@ovgu.de)
+ * 
+ */
 public class XMPPConn implements Connection {
 	final XMPPTransport transport;
 	final Endpoint endpoint;
@@ -44,9 +50,26 @@ public class XMPPConn implements Connection {
 	 */
 	private URI effective_jid;
 
+	/**
+	 * Create a connection on a specific end-point for an XMPP transport.
+	 * 
+	 * @param endpoint
+	 * @param transport
+	 * @throws NullPointerException
+	 *             if end-point or transport are @code{null}.
+	 */
 	public XMPPConn(final Endpoint endpoint, final XMPPTransport transport) {
-		this.transport = transport;
+		super();
+
+		if (endpoint == null)
+			throw new NullPointerException(
+					"Endpoint argument must not be null!");
 		this.endpoint = endpoint;
+
+		if (transport == null)
+			throw new NullPointerException(
+					"Transport argument must not be null!");
+		this.transport = transport;
 
 		this.effective_jid = transport.getPeer();
 	}
@@ -62,12 +85,22 @@ public class XMPPConn implements Connection {
 		return SerializationProvider.STRING;
 	}
 
+	/**
+	 * Get the effective Jabber ID as URI, i.e. the ID an XMPP server has
+	 * assigned if the peer URI was incomplete.
+	 * 
+	 * @return
+	 */
 	public URI getEffectiveJID() {
 		synchronized (this) {
 			return effective_jid;
 		}
 	}
 
+	/**
+	 * Set the effective Jabber ID from its URI, i.e. the ID an XMPP server has
+	 * assigned if the peer URI was incomplete.
+	 */
 	public void setEffectiveJID(URI jid) {
 		synchronized (this) {
 			this.effective_jid = jid;

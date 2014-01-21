@@ -122,13 +122,16 @@ public class XMPPTransportFactory implements TransportFactory {
 
 	@Override
 	public boolean servesPeer(URI peer, String schema) {
-		// TODO may be more sophisticated
+		// TODO should be more sophisticated
 		return peer.getScheme().equals("xmpp");
 		// && defaultEndpoints.keySet().contains(schema); ?
 	}
 
 	@Override
 	public void addInboundEndpoint(Endpoint inboundEndpoint) {
+		if (client == null)
+			throw new IllegalStateException(
+					"The transport factory has not been provided with a client!");
 		client.addInboundEndpoint(inboundEndpoint);
 	}
 
