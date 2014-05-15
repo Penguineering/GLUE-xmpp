@@ -37,6 +37,7 @@ import de.ovgu.dke.glue.api.transport.PacketHandlerFactory;
 import de.ovgu.dke.glue.api.transport.PacketThread;
 import de.ovgu.dke.glue.api.transport.Transport;
 import de.ovgu.dke.glue.api.transport.TransportException;
+import de.ovgu.dke.glue.api.transport.TransportLifecycleListener;
 import de.ovgu.dke.glue.xmpp.serialization.SmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.serialization.TextSmackMessageConverter;
 import de.ovgu.dke.glue.xmpp.transport.thread.PacketThreadManager;
@@ -246,6 +247,18 @@ public class XMPPTransport implements Transport {
 	@Override
 	public Endpoint getDefaultEndpoint(String schema) {
 		return client.getInboundEndpoint(schema);
+	}
+
+	@Override
+	public void addTransportLifecycleListener(
+			TransportLifecycleListener listener) {
+		getClient().addLifecycleListener(listener);
+	}
+
+	@Override
+	public void removeTransportLifecycleListener(
+			TransportLifecycleListener listener) {
+		getClient().removeLifecycleListener(listener);
 	}
 
 }

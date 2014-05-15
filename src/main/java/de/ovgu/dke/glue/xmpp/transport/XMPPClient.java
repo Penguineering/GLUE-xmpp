@@ -56,8 +56,10 @@ import de.ovgu.dke.glue.xmpp.transport.thread.XMPPPacketThread;
 /**
  * XMPP Client to receive and evaluate XMPP requests.
  * 
- * <p>Uses <code>m_conn_lock</code> for internal thread synchronization on
- * connection access.</p>
+ * <p>
+ * Uses <code>m_conn_lock</code> for internal thread synchronization on
+ * connection access.
+ * </p>
  * 
  * @author Stefan Haun (stefan.haun@ovgu.de)
  */
@@ -235,14 +237,14 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 			final XMPPTransport transport = findTransport(msg.getFrom());
 
 			// create XMPP packet from smack packet
-			XMPPPacket pkt = transport.processSmackMessage(msg);
+			final XMPPPacket pkt = transport.processSmackMessage(msg);
 
 			// TODO check ID consistency
 
 			XMPPPacketThread pt = threads.retrieveThread(pkt.getThreadId());
 
 			if (pt == null) {
-				// TODO check if the ID is local -> not allowed!
+				// check if the ID is local -> not allowed!
 				if (PacketThreadManager.isLocalID(pkt.getThreadId(),
 						this.getLocalURI())) {
 					logger.error("Received foreign thread with unknown local ID!");
@@ -274,17 +276,31 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 				logger.debug(con.getPeer());
 				logger.debug("Payload:\n" + pkt.getPayload());
 
-				// TODO call via thread
+				// call via thread
 				if (pt.getHandler() != null)
-					// TODO alle throwables abfangen
-					pt.getHandler().handle(pt, pkt);
+					try {
+						pt.getHandler().handle(pt, pkt);
+					} catch (Throwable t) {
+						// TODO send via error message
+						logger.error(
+								String.format(
+										"Uncaught %s exception during handler execution for thread %s: %s",
+										t.getClass().getCanonicalName(),
+										pt.getId(), t.getMessage()), t);
+					}
 				else
+					// TODO send via error message
 					logger.error("No packet handler defined for thread "
 							+ pt.getId());
 			}
 		} catch (TransportException e) {
+			logger.error(
+					"Transport exception during package processing: "
+							+ e.getMessage(), e);
 			e.printStackTrace();
 		} catch (InstantiationException e) {
+			logger.error("Instantiation exception during package processing: "
+					+ e.getMessage(), e);
 			e.printStackTrace();
 		}
 	}
@@ -330,7 +346,7 @@ public class XMPPClient implements PacketListener, ConnectionListener, Reporter 
 	 */
 	public void teardown() {
 		synchronized (conn_lock) {
-			// TODO thread sollten beim Schließen der einzelnen Transports
+			// TODO threads sollten beim Schließen der einzelnen Transports
 			// "entsorgt" werden.
 
 			// TODO warten, bis SMACK-connection geschlossen ist
