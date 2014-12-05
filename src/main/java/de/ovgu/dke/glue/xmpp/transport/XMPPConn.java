@@ -80,6 +80,16 @@ public class XMPPConn implements Connection {
 	}
 
 	@Override
+	public URI getPublicAddress() {
+		// get the client's local URI
+		final XMPPTransport _transport = (XMPPTransport) getTransport();
+		final XMPPClient _client = _transport.getClient();
+		final URI _local = _client.getLocalURI();
+
+		return _local;
+	}
+
+	@Override
 	public String getSerializationFormat() {
 		// TODO later: make this according to client capabilities
 		return SerializationProvider.STRING;
